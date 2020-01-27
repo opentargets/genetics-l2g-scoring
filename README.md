@@ -147,6 +147,10 @@ cd ..
 
 ## Step 3: Train classifier
 
+Uses feature matrix and gold-standards to train a classifier
+
+
+
 ## Step 4: Validate model
 
 ## Step 5: Prioritise genes

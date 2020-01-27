@@ -17,7 +17,7 @@ def main():
 
     # Parse args
     global args
-    args = parse_args()    
+    args = parse_args()
 
     # Make spark session
     global spark
