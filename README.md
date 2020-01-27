@@ -74,7 +74,8 @@ gcloud dataproc jobs submit pyspark \
     --cluster=em-cluster-ml-features \
     1_prepare_inputs.py -- --version $version_date
 
-# Create features
+# Create features.
+# N.B. distance must be run last.
 cd 2_make_features
 for inf in dhs_prmtr.py enhc_tss.py fm_coloc.py others.py pchicJung.py pics_coloc.py polyphen.py vep.py distance.py; do
     gcloud dataproc jobs submit pyspark \
@@ -98,6 +99,52 @@ cd ..
 ```
 
 ## Step 2: Join gold-standard training data
+
+Processes the gold-standard training data and joins with the feature matrix.
+
+### Prepare input data
+
+```bash
+# Change to working directory
+cd 2_process_training_data
+
+# Args
+gold_standards_url=https://raw.githubusercontent.com/opentargets/genetics-gold-standards/master/gold_standards/processed/gwas_gold_standards.191108.jsonl
+feature_matrix_gs=gs://genetics-portal-staging/l2g/$version_date/features/output/features.raw.$version_date.parquet
+
+# Download input data to local machine
+mkdir -p input_data
+# a. Gold-standard GWAS loci
+wget --directory-prefix input_data $gold_standards_url
+# b. Feature matrix
+gsutil -m rsync -r \
+  gs://genetics-portal-staging/l2g/$version_date/features/output/features.raw.$version_date.parquet \
+  input_data/features.raw.$version_date.parquet
+# c. Other feature inputs (string, cluster and toploci data)
+gsutil -m rsync -r \
+  gs://genetics-portal-staging/l2g/$version_date/features/inputs/string.parquet \
+  input_data/string.$version_date.parquet
+gsutil -m rsync -r \
+  gs://genetics-portal-staging/l2g/$version_date/features/inputs/clusters.parquet \
+  input_data/clusters.$version_date.parquet
+gsutil -m rsync -r \
+  gs://genetics-portal-staging/l2g/$version_date/features/inputs/toploci.parquet \
+  input_data/toploci.$version_date.parquet
+
+# Process and join gold-standards to feature matrix
+python process_goldstandards.py /
+  --in_features input_data/features.raw.$version_date.parquet \
+  --in_gs input_data/$(basename $gold_standards_url) \
+  --in_string input_data/string.$version_date.parquet \
+  --in_clusters input_data/clusters.$version_date.parquet \
+  --in_toploci input_data/toploci.$version_date.parquet \
+  --out_full output/featurematrix_w_goldstandards.full.$version_date.parquet \
+  --out_training output/featurematrix_w_goldstandards.training_only.$version_date.parquet \
+  --out_log_dir output/logs_$version_date
+
+# Change back to root directory
+cd ..
+```
 
 ## Step 3: Train classifier
 

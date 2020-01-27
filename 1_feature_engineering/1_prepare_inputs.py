@@ -23,21 +23,21 @@ def main():
     out_gs = 'gs://genetics-portal-staging/l2g/{v}/features/inputs/'.format(v=args.version)
     manifest = {
         'study': {
-            'in': 'gs://genetics-portal-staging/v2d/190625/studies.parquet',
+            'in': 'gs://genetics-portal-staging/v2d/200123/studies.parquet',
             'out': out_gs + 'studies.parquet'
         },
         'toploci': {
-            'in': 'gs://genetics-portal-staging/v2d/190625/toploci.parquet',
+            'in': 'gs://genetics-portal-staging/v2d/200123/toploci.parquet',
             'out': out_gs + 'toploci.parquet'
         },
         'credsets_v2d': {
             'in_fm': 'gs://genetics-portal-staging/finemapping/190612/credset/part-*-942d21cd-fb9e-475a-aa0b-8b4cd7db071f-c000.json.gz',
-            'in_pics': 'gs://genetics-portal-staging/v2d/190719/ld_w_pics.parquet',
+            'in_pics': 'gs://genetics-portal-staging/v2d/200123/ld.parquet',
             'out': out_gs + 'credsets_v2d.parquet'
         },
         'credsets_qtl': {
             'in': 'gs://genetics-portal-staging/finemapping/190612/credset/part-*-942d21cd-fb9e-475a-aa0b-8b4cd7db071f-c000.json.gz',
-            'in_lut': 'gs://genetics-portal-data/lut/phenotype_id_lut.190629.json',
+            'in_lut': 'gs://genetics-portal-input/luts/phenotype_id_lut.190629.json', # This is a lut to map from non-gene phenotype ID to Ensembl ID
             'out': out_gs + 'credsets_qtl.parquet'
         },
         'coloc': {
@@ -45,7 +45,7 @@ def main():
             'out': out_gs + 'coloc.parquet'
         },
         'v2g': {
-            'in': 'gs://genetics-portal-output/190504/v2g/part-*-b6ea7e74-886d-4c85-85c2-9199b7bfc7b8-c000.json',
+            'in': 'gs://genetics-portal-output/190505/v2g/part-*-b6ea7e74-886d-4c85-85c2-9199b7bfc7b8-c000.json',
             'out_interval': out_gs + 'interval.parquet',
             'out_vep': out_gs + 'vep.parquet'
         },
@@ -54,12 +54,12 @@ def main():
             'out': out_gs + 'genes.parquet'
         },
         'polyphen': {
-            'in': 'gs://genetics-portal-data/variant-annotation/190129/variant-annotation.parquet',
+            'in': 'gs://genetics-portal-staging/variant-annotation/190129/variant-annotation.parquet',
             'out': out_gs + 'polyphen.parquet'
         },
         'string': {
-            'in_links': 'gs://genetics-portal-raw/string/9606.protein.links.v11.0.txt',
-            'in_aliases': 'gs://genetics-portal-raw/string/9606.protein.aliases.v11.0.txt',
+            'in_links': 'gs://genetics-portal-input/string/9606.protein.links.v11.0.txt',
+            'in_aliases': 'gs://genetics-portal-input/string/9606.protein.aliases.v11.0.txt',
             'in_genes': out_gs + 'genes.parquet',
             'out': out_gs + 'string.parquet'
         },
@@ -73,12 +73,12 @@ def main():
             'out': out_gs + 'pchicJung.parquet'
         },
         'protein_attenuation': {
-            'in': 'gs://genetics-portal-raw/protein_attenuation/Sousa2019_142565_1_supp_344512_psqnlv.csv',
-            'in_genes': 'gs://genetics-portal-data/lut/19.06_gene_symbol_synonym_map.json',
+            'in': 'gs://genetics-portal-input/protein_attenuation/Sousa2019_142565_1_supp_344512_psqnlv.csv',
+            'in_genes': 'gs://genetics-portal-input/luts/19.06_gene_symbol_synonym_map.json',
             'out': out_gs + 'proteinAttenuation.parquet'
         },
         'variant_index': {
-            'in': 'gs://genetics-portal-data/variant-annotation/190129/variant-annotation.parquet',
+            'in': 'gs://genetics-portal-staging/variant-annotation/190129/variant-annotation.parquet',
             'out': out_gs + 'variant-annotation.parquet'
         },
     }
