@@ -158,7 +158,7 @@ def main():
         .write
         .parquet(
             out_features,
-            mode='overwrite'
+            mode='ignore'
         )
     )
 

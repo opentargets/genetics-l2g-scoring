@@ -49,7 +49,7 @@ def main():
         .write
         .parquet(
             out_credset_count,
-            mode='overwrite'
+            mode='ignore'
         )
     )
     
@@ -67,7 +67,7 @@ def main():
         .write
         .parquet(
             out_sumstat_dummy,
-            mode='overwrite'
+            mode='ignore'
         )
     )
 

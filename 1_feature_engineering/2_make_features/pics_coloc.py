@@ -124,7 +124,7 @@ def main():
     #     .write.csv(
     #         out_temp_coloc,
     #         header=True,
-    #         mode='overwrite'
+    #         mode='ignore'
     #     )
     # )
 
@@ -293,7 +293,7 @@ def main():
         .write
         .parquet(
             out_features,
-            mode='overwrite'
+            mode='ignore'
         )
     )
 

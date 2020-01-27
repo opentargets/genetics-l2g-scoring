@@ -239,7 +239,7 @@ def process_clusters(in_top_loci, in_credible_sets, min_pp_clustering,
         .write
         .parquet(
             out_path,
-            mode='overwrite'
+            mode='ignore'
         )
     )
 
@@ -413,7 +413,7 @@ def process_string(in_links, in_aliases, min_score, gene_info, out_path):
         .write
         .parquet(
             out_path,
-            mode='overwrite'
+            mode='ignore'
         )
     )
 
@@ -477,7 +477,7 @@ def process_polyphen(in_path, out_path):
         .write
         .parquet(
             out_path,
-            mode='overwrite'
+            mode='ignore'
         )
     )
 
@@ -512,7 +512,7 @@ def process_study_table(in_path, out_path):
         .repartition(10)
         .write.parquet(
             out_path,
-            mode='overwrite'
+            mode='ignore'
         )
     )
 
@@ -526,7 +526,7 @@ def process_pchicJung(in_path, out_path):
         spark.read.parquet(in_path)
         .write.parquet(
             out_path,
-            mode='overwrite'
+            mode='ignore'
         )
     )
 
@@ -543,7 +543,7 @@ def process_toploci_table(in_path, out_path):
         .repartitionByRange('study_id', 'chrom', 'pos')
         .write.parquet(
             out_path,
-            mode='overwrite'
+            mode='ignore'
         )
     )
 
@@ -659,7 +659,7 @@ def process_credsets_v2d_table(in_fm, in_pics, out_path):
     # Write
     combined.write.parquet(
         out_path,
-        mode='overwrite'
+        mode='ignore'
     )
 
     return 0
@@ -749,7 +749,7 @@ def process_credsets_qtl_table(in_path, in_lut, out_path):
     # Write
     qtl.write.parquet(
         out_path,
-        mode='overwrite'
+        mode='ignore'
     )
 
     return 0
@@ -815,7 +815,7 @@ def process_coloc_table(in_path, in_genes, out_path):
     # Write
     coloc.write.parquet(
         out_path,
-        mode='overwrite'
+        mode='ignore'
     )
 
     return 0
@@ -852,7 +852,7 @@ def process_v2g_table(in_path, out_interval, out_vep):
         .repartitionByRange('chrom', 'pos')
         .write.parquet(
             out_interval,
-            mode='overwrite'
+            mode='ignore'
         )
     )
 
@@ -873,7 +873,7 @@ def process_v2g_table(in_path, out_interval, out_vep):
         .repartitionByRange('chrom', 'pos')
         .write.parquet(
             out_vep,
-            mode='overwrite'
+            mode='ignore'
         )
     )
 
@@ -911,7 +911,7 @@ def process_gene_table(in_path, out_path):
     # Write
     genes.write.parquet(
         out_path,
-        mode='overwrite'
+        mode='ignore'
     )
 
     return 0
@@ -1010,7 +1010,7 @@ def process_protein_attenuation(in_path, in_genes, out_path):
         )
         .write.parquet(
             out_path,
-            mode='overwrite'
+            mode='ignore'
         )
 
     )
@@ -1058,7 +1058,7 @@ def process_variant_index(in_path, in_credsets, out_path):
         .repartitionByRange('chrom', 'pos')
         .write.parquet(
             out_path,
-            mode='overwrite'
+            mode='ignore'
         )
     )
 

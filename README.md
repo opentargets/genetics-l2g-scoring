@@ -110,7 +110,6 @@ cd 2_process_training_data
 
 # Args
 gold_standards_url=https://raw.githubusercontent.com/opentargets/genetics-gold-standards/master/gold_standards/processed/gwas_gold_standards.191108.jsonl
-feature_matrix_gs=gs://genetics-portal-staging/l2g/$version_date/features/output/features.raw.$version_date.parquet
 
 # Download input data to local machine
 mkdir -p input_data
