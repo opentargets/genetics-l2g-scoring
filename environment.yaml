@@ -1,0 +1,11 @@
+channels:
+  - conda-forge
+dependencies:
+  - python=3
+  - pyarrow>=0.15
+  - pandas
+  - pyspark
+  - scikit-learn
+  - joblib
+  - xgboost
+  - matplotlib
