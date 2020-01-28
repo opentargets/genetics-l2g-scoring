@@ -4,7 +4,7 @@
 # Ed Mountjoy
 #
 '''
-Predicts values for full data
+Predicts values for all data in feature matrix
 '''
 
 import sys
@@ -92,6 +92,11 @@ def main():
     # Concatenate all predictions together
     print('Concatenating model outputs...')
     pred_df = pd.concat(predictions, ignore_index=True)
+
+    # Make spark session
+    global spark
+    spark = (pyspark.sql.SparkSession.builder.getOrCreate())
+    print('Spark version: ', spark.version)
 
     # Write as parquet
     print('Writing parquet with spark...')

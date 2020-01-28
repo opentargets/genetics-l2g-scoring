@@ -158,6 +158,8 @@ cd ..
 
 Uses feature matrix and gold-standards to train a classifier
 
+Note: It takes 2 hours to train all models using 500 iterations on 64 cores
+
 ```bash
 # Change to working directory
 cd 3_train_model
@@ -225,10 +227,10 @@ python 1_prioritise_genes_all_loci.py \
 # Format locus-to-gene table for export
 python 2_format_l2g_table.py \
   --in_long output/$version_date/predictions.full.$version_date.long.parquet \
+  --out_l2g output/$version_date/l2g.full.$version_date.parquet \
   --exclude_studies GCST007236 \
   --keep_clf xgboost \
-  --keep_gsset high_medium \
-  --out_l2g output/$version_date/l2g.full.$version_date.parquet
+  --keep_gsset high_medium
 
 # Backup to GCS
 gsutil -m rsync -r output/$version_date gs://genetics-portal-staging/l2g/$version_date/predictions/
