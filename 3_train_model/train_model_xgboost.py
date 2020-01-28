@@ -57,7 +57,7 @@ def main():
     #
 
     # Make feature sets
-    feature_sets = make_feature_sets()
+    feature_sets = make_feature_sets(data.columns)
 
     # Make dict of classifiers
     classifiers = {
@@ -247,7 +247,7 @@ def get_cv_groups(df, num_folds, group_col, outcome_col, all_groups):
 
     return fold_groups
 
-def make_feature_sets():
+def make_feature_sets(available_columns):
     ''' Make different sets of features to run the model on
     
     List of all features (October 2019):
@@ -306,8 +306,8 @@ def make_feature_sets():
     interaction = [
         'dhs_prmtr_max', 'dhs_prmtr_max_nbh', 'dhs_prmtr_ave', 'dhs_prmtr_ave_nbh',
         'enhc_tss_max', 'enhc_tss_max_nbh', 'enhc_tss_ave', 'enhc_tss_ave_nbh',
-        'pchic_max', 'pchic_max_nbh', 'pchic_ave', 'pchic_ave_nbh', 'pchicJung_max',
-        'pchicJung_max_nbh', 'pchicJung_ave', 'pchicJung_ave_nbh',
+        # 'pchic_max', 'pchic_max_nbh', 'pchic_ave', 'pchic_ave_nbh',
+        'pchicJung_max', 'pchicJung_max_nbh', 'pchicJung_ave', 'pchicJung_ave_nbh',
     ]
     pathogenicity = [
         'vep_credset_max', 'vep_credset_max_nbh', 'vep_ave', 'vep_ave_nbh',
@@ -356,7 +356,6 @@ def make_feature_sets():
         # 'dist_tss': dist_tss,
         # 'dist_foot': dist_foot,
         # 'interlocus': interlocus,
-        # 'helper': helper,
     }
     for grp_name, grp in groups_dict.items():
 
@@ -385,6 +384,14 @@ def make_feature_sets():
     #         if grp_name_A > grp_name_B:
     #             set_name = 'pairwise_{}_{}'.format(grp_name_A, grp_name_B)
     #             feature_sets[set_name] = grp_A + grp_B + helper
+
+    # Check that specified fields are contained in the input dataset
+    for ft_name, ft_cols in feature_sets.items():
+        missing_cols = set(ft_cols) - set(available_columns)
+        msg = '{0} missing from feature matrix for feature set "{1}"'.format(
+            missing_cols, ft_name
+        )
+        assert len(missing_cols) == 0, msg
 
     return feature_sets
 

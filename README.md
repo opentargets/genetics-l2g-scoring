@@ -145,6 +145,9 @@ python process_goldstandards.py \
   --out_training output/featurematrix_w_goldstandards.training_only.$version_date.parquet \
   --out_log_dir output/logs_$version_date
 
+# Backup to GCS
+gsutil -m rsync -rn output gs://genetics-portal-staging/l2g/$version_date/gold_standards/
+
 # Change back to root directory
 cd ..
 ```
@@ -162,6 +165,9 @@ python train_model_xgboost.py \
   --in_path ../2_process_training_data/output/featurematrix_w_goldstandards.training_only.$version_date.parquet \
   --out_dir output/$version_date/models \
   --cv_iters 10 # DEBUG, low num iterations
+
+# Backup to GCS
+gsutil -m rsync -rn output/$version_date/models gs://genetics-portal-staging/l2g/$version_date/models/
 
 # Change back to root directory
 cd ..
