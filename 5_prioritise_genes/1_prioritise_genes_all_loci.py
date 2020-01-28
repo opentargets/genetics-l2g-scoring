@@ -23,6 +23,7 @@ def main():
     args = parse_args()
 
     # Load
+    print('Loading input...')
     data = pd.read_parquet(args.in_ft)
 
     #
