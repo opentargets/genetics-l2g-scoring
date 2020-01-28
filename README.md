@@ -208,3 +208,25 @@ cd ..
 ```
 
 ## Step 5: Prioritise genes
+
+Prioritises genes across all loci in the feature matrix. Processes output for L2G table.
+
+```bash
+# Change to working directory
+cd 5_prioritise_genes
+
+# Load models and make predictions across all loci
+# (don't expand model pattern glob)
+python 1_prioritise_genes_all_loci.py \
+  --in_ft ../2_process_training_data/output/featurematrix_w_goldstandards.full.$version_date.parquet \
+  --in_model_pattern ../3_train_model/output/$version_date/models/'*.model.joblib.gz' \
+  --out_long output/$version_date/l2g_predictions.full.$version_date.long.parquet \
+  --out_wide output/$version_date/l2g_predictions.full.$version_date.wide.parquet \
+  --exclude_studies GCST007236
+
+# Backup to GCS
+gsutil -m rsync -r output/$version_date gs://genetics-portal-staging/l2g/$version_date/predictions/
+
+# Change back to root directory
+cd ..
+```
