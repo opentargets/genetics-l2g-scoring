@@ -9,15 +9,10 @@ Predicts values for all data in feature matrix
 
 import sys
 import os
-import json
 import argparse
 import pandas as pd
 import joblib
-from pprint import pprint
 from glob import glob
-import pyspark.sql
-from pyspark.sql.types import *
-from pyspark.sql.functions import *
 
 def main():
 
@@ -93,21 +88,13 @@ def main():
     print('Concatenating model outputs...')
     pred_df = pd.concat(predictions, ignore_index=True)
 
-    # Make spark session
-    global spark
-    spark = (pyspark.sql.SparkSession.builder.getOrCreate())
-    print('Spark version: ', spark.version)
-
-    # Write as parquet
-    print('Writing parquet with spark...')
-    (
-        spark.createDataFrame(pred_df)
-        .repartitionByRange('study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id')
-        .write
-        .parquet(
-            args.out_long,
-            mode='overwrite'
-        )
+    # Write as parquet using pyarrow
+    os.makedirs(os.path.dirname(args.out_long), exist_ok=True)
+    pred_df.to_parquet(
+        args.out_long,
+        engine='pyarrow',
+        compression='snappy',
+        flavor='spark'
     )
 
     return 0
