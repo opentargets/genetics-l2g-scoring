@@ -19,16 +19,16 @@ import sklearn.metrics as skmet
 from sklearn.metrics import precision_recall_curve, average_precision_score
 from sklearn.metrics import roc_curve, auc
 from sklearn.calibration import calibration_curve
+import argparse
 
 def main():
 
     pd.options.mode.chained_assignment = None
     pd.set_option('display.max_columns', 500)
 
-    # Args
-    in_pred = 'output/predictions_191111/predictions.long.parquet'
-    in_ft_imp = 'output/predictions_191111/feature_importances.json'
-    out_dir = 'results/191111'
+    # Parse args
+    global args
+    args = parse_args()
 
     # Allow plots or classification report to be switched off
     do_plots = True
@@ -63,13 +63,10 @@ def main():
     #
 
     # Load predictions
-    pred = pd.read_parquet(in_pred)
-
-    # Create output folder
-    os.makedirs(out_dir, exist_ok=True)
+    pred = pd.read_parquet(args.in_pred)
 
     # Load feature importance information
-    with open(in_ft_imp, 'r') as in_h:
+    with open(args.in_ftimp, 'r') as in_h:
         ft_imp = json.load(in_h)
 
     #
@@ -113,7 +110,7 @@ def main():
     # Iterate over training groups
     for (clf, ft, gs_training), group in pred_grp:
 
-        print('\nProcessing', clf, ft, gs_training, '...')
+        print('Processing', clf, ft, gs_training, '...')
 
         # Make testing gold-standard sets. This is the same as in 1_train_models.py
         gs_sets = {
@@ -149,8 +146,7 @@ def main():
                 # Make outname
                 out_name = '{}-{}-{}-{}.figure.png'.format(clf, ft, gs_training, gs_test)
                 out_path = os.path.join(*[
-                    out_dir,
-                    'plots',
+                    args.out_plotdir,
                     clf,
                     'training=' + gs_training,
                     out_name
@@ -283,12 +279,14 @@ def main():
     # Write classification report ---------------------------------------------
     #
 
+    print('Writing classification report...')
+
     # Convert to df
     clf_df = pd.DataFrame(clf_report)
     
     # Write
-    out_path = os.path.join(out_dir, 'classification_report.tsv')
-    clf_df.to_csv(out_path, sep='\t', index=True, index_label='idx')
+    os.makedirs(os.path.dirname(args.out_report), exist_ok=True)
+    clf_df.to_csv(args.out_report, sep='\t', index=True, index_label='idx')
     
     return 0
 
@@ -489,6 +487,19 @@ def plot_feature_importances(fold_data, feature_names, ax,  subtitle=None):
         ax.set_title('Feature Importances')
 
     return ax
+
+def parse_args():
+    """ Load command line args """
+    parser = argparse.ArgumentParser()
+    # Input paths
+    parser.add_argument('--in_pred', metavar="<parquet>", help="Input parquet containing predictions", type=str, required=True)
+    parser.add_argument('--in_ftimp', metavar="<str>", help="Input json containing feature importances", type=str, required=True)
+    # Outputs
+    parser.add_argument('--out_plotdir', metavar="<dir>", help="Output directory to write plots", type=str, required=True)
+    parser.add_argument('--out_report', metavar="<file>", help="Out path for classification report", type=str, required=True)
+
+    args = parser.parse_args()
+    return args
 
 if __name__ == '__main__':
 

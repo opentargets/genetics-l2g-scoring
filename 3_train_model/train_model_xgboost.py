@@ -250,37 +250,27 @@ def get_cv_groups(df, num_folds, group_col, outcome_col, all_groups):
 def make_feature_sets(available_columns):
     ''' Make different sets of features to run the model on
     
-    List of all features (October 2019):
+    List of all features (Januaray 2020):
 
     'dhs_prmtr_max',
     'dhs_prmtr_max_nbh', 'dhs_prmtr_ave', 'dhs_prmtr_ave_nbh',
     'enhc_tss_max', 'enhc_tss_max_nbh', 'enhc_tss_ave', 'enhc_tss_ave_nbh',
     'eqtl_coloc_llr_max', 'eqtl_coloc_llr_max_neglogp',
     'eqtl_coloc_llr_max_nbh', 'pqtl_coloc_llr_max',
-    'pqtl_coloc_llr_max_neglogp', 'pqtl_coloc_llr_max_nbh', 'pchic_max',
-    'pchic_max_nbh', 'pchic_ave', 'pchic_ave_nbh', 'pchicJung_max',
+    'pqtl_coloc_llr_max_neglogp', 'pqtl_coloc_llr_max_nbh', 'pchicJung_max',
     'pchicJung_max_nbh', 'pchicJung_ave', 'pchicJung_ave_nbh',
     'eqtl_pics_clpp_max', 'eqtl_pics_clpp_max_neglogp',
     'eqtl_pics_clpp_max_nhb', 'pqtl_pics_clpp_max',
     'pqtl_pics_clpp_max_neglogp', 'pqtl_pics_clpp_max_nhb',
     'vep_credset_max', 'vep_credset_max_nbh', 'vep_ave', 'vep_ave_nbh',
     'polyphen_credset_max', 'polyphen_credset_max_nbh', 'polyphen_ave',
-    'polyphen_ave_nbh', 'interlocus_string_bystudy_unweighted',
-    'interlocus_string_bystudy_targetweighted',
-    'interlocus_string_bystudy_unweighted_locusweight',
-    'interlocus_string_bystudy_targetweighted_locusweight',
-    'interlocus_string_byefo_unweighted',
-    'interlocus_string_byefo_targetweighted',
-    'interlocus_string_byefo_unweighted_locusweight',
-    'interlocus_string_byefo_targetweighted_locusweight',
-    'count_credset_95', 'has_sumstats', 'dist_foot_sentinel',
+    'polyphen_ave_nbh', 'count_credset_95', 'has_sumstats', 'dist_foot_sentinel',
     'dist_foot_sentinel_nbh', 'dist_foot_min', 'dist_foot_min_nbh',
     'dist_foot_ave', 'dist_foot_ave_nbh', 'dist_tss_sentinel',
     'dist_tss_sentinel_nbh', 'dist_tss_min', 'dist_tss_min_nbh',
     'dist_tss_ave', 'dist_tss_ave_nbh', 'gene_count_lte_50k',
     'gene_count_lte_100k', 'gene_count_lte_250k', 'gene_count_lte_500k',
     'proteinAttenuation'
-
     '''
 
     #
@@ -288,8 +278,6 @@ def make_feature_sets(available_columns):
     #
 
     distance = [
-        # 'dist_foot_sentinel', 'dist_foot_sentinel_nbh', 
-        # 'dist_tss_sentinel', 'dist_tss_sentinel_nbh',
         'dist_foot_min', 'dist_foot_min_nbh',
         'dist_foot_ave', 'dist_foot_ave_nbh',
         'dist_tss_min', 'dist_tss_min_nbh',
@@ -306,7 +294,6 @@ def make_feature_sets(available_columns):
     interaction = [
         'dhs_prmtr_max', 'dhs_prmtr_max_nbh', 'dhs_prmtr_ave', 'dhs_prmtr_ave_nbh',
         'enhc_tss_max', 'enhc_tss_max_nbh', 'enhc_tss_ave', 'enhc_tss_ave_nbh',
-        # 'pchic_max', 'pchic_max_nbh', 'pchic_ave', 'pchic_ave_nbh',
         'pchicJung_max', 'pchicJung_max_nbh', 'pchicJung_ave', 'pchicJung_ave_nbh',
     ]
     pathogenicity = [
@@ -314,16 +301,6 @@ def make_feature_sets(available_columns):
         'polyphen_credset_max', 'polyphen_credset_max_nbh', 'polyphen_ave',
         'polyphen_ave_nbh',
     ]
-    # interlocus = [
-    #     # 'interlocus_string_bystudy_unweighted',
-    #     # 'interlocus_string_bystudy_targetweighted',
-    #     # 'interlocus_string_bystudy_unweighted_locusweight',
-    #     'interlocus_string_bystudy_targetweighted_locusweight',
-    #     # 'interlocus_string_byefo_unweighted',
-    #     # 'interlocus_string_byefo_targetweighted',
-    #     # 'interlocus_string_byefo_unweighted_locusweight',
-    #     'interlocus_string_byefo_targetweighted_locusweight',
-    # ]
     helper = [
         'count_credset_95', 'has_sumstats',
         'gene_count_lte_50k', 'gene_count_lte_100k',
@@ -341,7 +318,6 @@ def make_feature_sets(available_columns):
 
     # Create baseline models
     feature_sets['full_model'] = distance + molecularQTL + interaction + pathogenicity + helper
-    # feature_sets['full_model_w_interlocus'] = distance + molecularQTL + interaction + pathogenicity + helper + interlocus
 
     # Add single distance features
     feature_sets['dist_foot'] = dist_foot
@@ -353,9 +329,6 @@ def make_feature_sets(available_columns):
         'molecularQTL': molecularQTL,
         'interaction': interaction,
         'pathogenicity': pathogenicity,
-        # 'dist_tss': dist_tss,
-        # 'dist_foot': dist_foot,
-        # 'interlocus': interlocus,
     }
     for grp_name, grp in groups_dict.items():
 
@@ -369,7 +342,6 @@ def make_feature_sets(available_columns):
             # Find whether the freature is in grp
             if any([full_ft == grp_ft for grp_ft in grp]):
                 pass
-                # logi.append(full_ft)
             else:
                 logo.append(full_ft)
 
@@ -377,7 +349,7 @@ def make_feature_sets(available_columns):
         feature_sets['logo_{}'.format(grp_name)] = logo
         feature_sets['logi_{}'.format(grp_name)] = logi
 
-    # # Add pairwise between groups
+    # # Add pairwise comparison between groups (not needed for production)
     # for grp_name_A, grp_A in groups_dict.items():
     #     for grp_name_B, grp_B in groups_dict.items():
     #         # Only do for upper triangle
@@ -385,7 +357,7 @@ def make_feature_sets(available_columns):
     #             set_name = 'pairwise_{}_{}'.format(grp_name_A, grp_name_B)
     #             feature_sets[set_name] = grp_A + grp_B + helper
 
-    # Check that specified fields are contained in the input dataset
+    # Check that specified fields are available in the input dataset
     for ft_name, ft_cols in feature_sets.items():
         missing_cols = set(ft_cols) - set(available_columns)
         msg = '{0} missing from feature matrix for feature set "{1}"'.format(

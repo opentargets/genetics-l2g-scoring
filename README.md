@@ -8,6 +8,8 @@ Workflows to run locus-to-gene (L2G) ML scoring pipeline. This repository conati
 4. Validate model under cross-validation
 5. Use model to prioritise genes for all loci
 
+Step 1 is to be ran on DataProc. Steps 2-5 to be ran on local compute (e.g. 32 core standard GCP).
+
 ## Setup environment
 
 ```bash
@@ -163,16 +165,46 @@ cd 3_train_model
 # Train model 
 python train_model_xgboost.py \
   --in_path ../2_process_training_data/output/featurematrix_w_goldstandards.training_only.$version_date.parquet \
-  --out_dir output/$version_date/models \
-  --cv_iters 10 # DEBUG, low num iterations
+  --out_dir output/$version_date/models
 
 # Backup to GCS
-gsutil -m rsync -rn output/$version_date/models gs://genetics-portal-staging/l2g/$version_date/models/
+gsutil -m rsync -r output/$version_date/models gs://genetics-portal-staging/l2g/$version_date/models/
 
 # Change back to root directory
 cd ..
 ```
 
 ## Step 4: Validate model
+
+Takes the trained models and produces:
+
+1. validation plots
+2. classification table
+
+```bash
+# Change to working directory
+cd 4_validate_model
+
+# Load models and make predictions across training data
+# (don't expand model pattern glob)
+python 1_predict_training_data.py \
+  --in_ft ../2_process_training_data/output/featurematrix_w_goldstandards.training_only.$version_date.parquet \
+  --in_model_pattern ../3_train_model/output/$version_date/models/'*.model.joblib.gz' \
+  --out_pred output/$version_date/intermediate_data/predictions_trainingonly.parquet \
+  --out_ftimp output/$version_date/intermediate_data/feature_importances.json
+
+# Generate validation plots and classification report
+python 2_validation_plots.py \
+  --in_pred output/$version_date/intermediate_data/predictions_trainingonly.parquet \
+  --in_ftimp output/$version_date/intermediate_data/feature_importances.json \
+  --out_plotdir output/$version_date/plots \
+  --out_report output/$version_date/classification_report.tsv
+
+# Backup to GCS
+gsutil -m rsync -r output/$version_date gs://genetics-portal-staging/l2g/$version_date/validation/
+
+# Change back to root directory
+cd ..
+```
 
 ## Step 5: Prioritise genes

@@ -15,31 +15,28 @@ from pprint import pprint
 import joblib
 from glob import glob
 import numpy
+import argparse
 
 def main():
 
     pd.options.mode.chained_assignment = None
 
-    # Args
-    in_data = '../../gold_standards/join_gold_standards_to_features/output_raw/features_with_gold_standards.training.191108.parquet/'
-    in_model_pattern = 'output/models_191111/*.model.joblib.gz'
-    out_dir = 'output/predictions_191111'
+    # Parse args
+    global args
+    args = parse_args()
 
     # Load
-    data = pd.read_parquet(in_data)
+    data = pd.read_parquet(args.in_ft)
 
     # Recode True/False
-    data = data.replace({True: 1, False: 0})
-
-    # Create output folder
-    os.makedirs(out_dir, exist_ok=True)
+    data = data.replace({True: 1, False: 0})    
 
     # Initiate feature importance results
     feature_imp = {}
 
     # Load all models and make predictions on corresponding chromosomes
     predictions = []
-    model_files = glob(in_model_pattern)
+    model_files = glob(args.in_model_pattern)
     for c, model_file in enumerate(model_files):
 
         print('Processing model {} of {}...'.format(c, len(model_files)))
@@ -115,21 +112,31 @@ def main():
     #
 
     # Write in long format
-    out_name = os.path.join(out_dir, 'predictions.long.parquet')
-    pred_df.to_parquet(out_name)
+    os.makedirs(os.path.dirname(args.out_pred), exist_ok=True)
+    pred_df.to_parquet(args.out_pred)
 
     #
     # Write feature importances -----------------------------------------------
     #
 
-    out_name = os.path.join(out_dir, 'feature_importances.json')
-    with open(out_name, 'w') as out_h:
+    os.makedirs(os.path.dirname(args.out_ftimp), exist_ok=True)
+    with open(args.out_ftimp, 'w') as out_h:
         json.dump(feature_imp, out_h, indent=2)
-
     
-    # return 0
+    return 0
 
+def parse_args():
+    """ Load command line args """
+    parser = argparse.ArgumentParser()
+    # Input paths
+    parser.add_argument('--in_ft', metavar="<parquet>", help="Input feature matrix with gold-standards", type=str, required=True)
+    parser.add_argument('--in_model_pattern', metavar="<str>", help="Glob pattern for trained models", type=str, required=True)
+    # Outputs
+    parser.add_argument('--out_pred', metavar="<parquet>", help="Output parquet containing predictions", type=str, required=True)
+    parser.add_argument('--out_ftimp', metavar="<json>", help="Output json containing feature importances", type=str, required=True)
 
+    args = parser.parse_args()
+    return args
     
 
 if __name__ == '__main__':
