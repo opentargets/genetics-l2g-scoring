@@ -90,6 +90,7 @@ def main():
     pred_df = pd.concat(predictions, ignore_index=True)
 
     # Write as parquet using pyarrow
+    print('Writing output...')
     os.makedirs(os.path.dirname(args.out_long), exist_ok=True)
     pred_df.to_parquet(
         args.out_long,
