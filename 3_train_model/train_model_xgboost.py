@@ -31,14 +31,14 @@ def main():
     global args
     args = parse_args()
     inner_cv_metric = balanced_accuracy_score
-    all_chroms = [str(chrom) for chrom in range(1, 23)] + ['X']
+    allowed_chroms = [str(chrom) for chrom in range(1, 23)] + ['X']
 
     #
     # Prepare data ------------------------------------------------------------
     #
 
     # Load
-    data = pd.read_parquet(in_data)
+    data = pd.read_parquet(args.in_path)
 
     # Recode True/False
     data = data.replace({True: 1, False: 0})
@@ -47,10 +47,10 @@ def main():
     inner_cv_scorer = make_scorer(inner_cv_metric)
 
     # Shuffle the dataset
-    data = data.sample(frac=1, random_state=random_state)
+    data = data.sample(frac=1, random_state=args.random_state)
 
     # Create output folder
-    os.makedirs(out_dir, exist_ok=True)
+    os.makedirs(args.out_dir, exist_ok=True)
 
     #
     # Define different features, classifiers, parameters, gold-standards ------
@@ -65,7 +65,7 @@ def main():
             xgb.XGBClassifier(
                 booster="gbtree", # gbtree|dart
                 objective="binary:logistic",
-                random_state=random_state,
+                random_state=args.random_state,
                 n_jobs=1
             )
     }
@@ -119,10 +119,10 @@ def main():
                 # Get chromosome groups for outer CV
                 outer_cv_chrom_groups = get_cv_groups(
                     df=data_subset,
-                    num_folds=num_outer_folds,
+                    num_folds=args.cv_outer_folds,
                     group_col='chrom',
-                    outcome_col=outcome_col,
-                    all_groups=all_chroms
+                    outcome_col=args.outcome_field,
+                    all_groups=allowed_chroms
                 )
 
                 # Perfrom leave-one-group-out (logo) outer CV
@@ -147,7 +147,7 @@ def main():
                     run_name = '-'.join([
                         clf_name, ft_name, gs_name, str(outer_fold_num)]).replace(' ', '_')
                     out_path = os.path.join(
-                        out_dir,
+                        args.out_dir,
                         '{}.model.joblib.gz'.format(run_name)
                     )
                     if os.path.exists(out_path):
@@ -160,27 +160,27 @@ def main():
 
                     # Split data into training and test
                     X_train = data_subset.loc[train_index, ft]
-                    y_train = data_subset.loc[train_index, outcome_col]
+                    y_train = data_subset.loc[train_index, args.outcome_field]
                     X_test = data_subset.loc[test_index, ft]
-                    y_test = data_subset.loc[test_index, outcome_col]
+                    y_test = data_subset.loc[test_index, args.outcome_field]
 
                     # Make inner CV for model selection
                     inner_grid_search = RandomizedSearchCV(
                         estimator=clf,
                         param_distributions=param_grid[clf_type],
                         scoring=inner_cv_scorer,
-                        n_jobs=n_jobs,
-                        cv=num_inner_folds,
+                        n_jobs=args.cores,
+                        cv=args.cv_inner_folds,
                         verbose=1,
-                        n_iter=cv_n_iter
+                        n_iter=args.cv_iters
                     )
                     
                     # Fit inner CV
                     inner_grid_search.fit(
                         X_train,
                         y_train,
-                        early_stopping_rounds=early_stopping_rounds,
-                        eval_metric=eval_metric,
+                        early_stopping_rounds=args.xgb_early_stop,
+                        eval_metric=args.xgb_eval_metric,
                         eval_set=[(X_test, y_test)],
                         verbose=0
                     )

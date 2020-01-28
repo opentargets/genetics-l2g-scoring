@@ -24,6 +24,7 @@ conda env create -n l2g --file environment.yaml
 conda activate l2g
 export PYSPARK_SUBMIT_ARGS="--driver-memory 50g pyspark-shell"
 version_date=`date +%y%m%d`
+#version_date=200127
 ```
 
 ## Step 1: Feature engineering
@@ -112,7 +113,10 @@ cd 2_process_training_data
 gold_standards_url=https://raw.githubusercontent.com/opentargets/genetics-gold-standards/master/gold_standards/processed/gwas_gold_standards.191108.jsonl
 
 # Download input data to local machine
-mkdir -p input_data
+mkdir -p input_data/features.raw.$version_date.parquet \
+  input_data/string.$version_date.parquet \
+  input_data/clusters.$version_date.parquet \
+  input_data/toploci.$version_date.parquet
 # a. Gold-standard GWAS loci
 wget --directory-prefix input_data $gold_standards_url
 # b. Feature matrix
@@ -131,7 +135,7 @@ gsutil -m rsync -r \
   input_data/toploci.$version_date.parquet
 
 # Process and join gold-standards to feature matrix
-python process_goldstandards.py /
+python process_goldstandards.py \
   --in_features input_data/features.raw.$version_date.parquet \
   --in_gs input_data/$(basename $gold_standards_url) \
   --in_string input_data/string.$version_date.parquet \
@@ -149,7 +153,19 @@ cd ..
 
 Uses feature matrix and gold-standards to train a classifier
 
+```bash
+# Change to working directory
+cd 3_train_model
 
+# Train model 
+python train_model_xgboost.py \
+  --in_path ../2_process_training_data/output/featurematrix_w_goldstandards.training_only.$version_date.parquet \
+  --out_dir output/$version_date/models \
+  --cv_iters 10 # DEBUG, low num iterations
+
+# Change back to root directory
+cd ..
+```
 
 ## Step 4: Validate model
 
