@@ -26,9 +26,6 @@ def main():
     # Parse args
     global args
     args = parse_args()
-    studies_to_remove = [
-        'GCST007236' # Michailidou K (2015)
-    ]
 
     # Load
     data = pd.read_parquet(args.in_ft)
@@ -44,9 +41,6 @@ def main():
 
     # Recode True/False
     data = data.replace({True: 1, False: 0})
-
-    # Create output folder
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
 
     # Load all models and make predictions on corresponding chromosomes
     predictions = []
