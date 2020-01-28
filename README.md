@@ -105,8 +105,6 @@ cd ..
 
 Processes the gold-standard training data and joins with the feature matrix.
 
-### Prepare input data
-
 ```bash
 # Change to working directory
 cd 2_process_training_data
@@ -148,7 +146,8 @@ python process_goldstandards.py \
   --out_log_dir output/logs_$version_date
 
 # Backup to GCS
-gsutil -m rsync -rn output gs://genetics-portal-staging/l2g/$version_date/gold_standards/
+gsutil -m rsync -r output gs://genetics-portal-staging/l2g/$version_date/gold_standards/
+gsutil cp input_data/$(basename $gold_standards_url) gs://genetics-portal-staging/l2g/$version_date/gold_standards/
 
 # Change back to root directory
 cd ..
