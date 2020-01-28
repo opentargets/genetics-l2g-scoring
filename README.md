@@ -220,9 +220,15 @@ cd 5_prioritise_genes
 python 1_prioritise_genes_all_loci.py \
   --in_ft ../2_process_training_data/output/featurematrix_w_goldstandards.full.$version_date.parquet \
   --in_model_pattern ../3_train_model/output/$version_date/models/'*.model.joblib.gz' \
-  --out_long output/$version_date/l2g_predictions.full.$version_date.long.parquet \
-  --out_wide output/$version_date/l2g_predictions.full.$version_date.wide.parquet \
-  --exclude_studies GCST007236
+  --out_long output/$version_date/predictions.full.$version_date.long.parquet
+
+# Format locus-to-gene table for export
+python 2_format_l2g_table.py \
+  --in_long output/$version_date/predictions.full.$version_date.long.parquet \
+  --exclude_studies GCST007236 \
+  --keep_clf xgboost \
+  --keep_gsset high_medium \
+  --out_l2g output/$version_date/l2g.full.$version_date.parquet
 
 # Backup to GCS
 gsutil -m rsync -r output/$version_date gs://genetics-portal-staging/l2g/$version_date/predictions/

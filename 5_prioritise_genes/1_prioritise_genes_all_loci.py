@@ -30,11 +30,6 @@ def main():
     # Load
     data = pd.read_parquet(args.in_ft)
 
-    # Make spark session
-    global spark
-    spark = (pyspark.sql.SparkSession.builder.getOrCreate())
-    print('Spark version: ', spark.version)
-
     #
     # Make predictions --------------------------------------------------------
     #
@@ -95,56 +90,14 @@ def main():
         predictions.append(prediction)
 
     # Concatenate all predictions together
+    print('Concatenating model outputs...')
     pred_df = pd.concat(predictions, ignore_index=True)
 
-    # Convert to spark df
-    predictions_long = (
+    # Write as parquet
+    print('Writing parquet with spark...')
+    (
         spark.createDataFrame(pred_df)
-        .filter(~col('study_id').isin(*args.exclude_studies))
-    )
-
-    #
-    # Pivot predictions ------------------------------------------------------
-    #
-
-    # Pivot y_proba for each feature set
-    group_cols = ['study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id',
-                  'training_clf', 'training_gs', 'training_fold']
-    predictions_wide = (
-        predictions
-        .groupby(group_cols)
-        .pivot('training_ft')
-        .sum('y_proba')
-    )
-
-    # Rename pivoted columns
-    for coln in [x for x in predictions_wide.columns if x not in group_cols]:
-        predictions_wide = predictions_wide.withColumnRenamed(
-            coln,
-            'y_proba_' + coln
-        )
-
-    #
-    # Write predictions -------------------------------------------------------
-    #
-
-    key_cols = ['study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id']
-
-    # Wide format
-    (
-        predictions_wide
-        .repartitionByRange(*key_cols)
-        .write
-        .parquet(
-            args.out_wide,
-            mode='overwrite'
-        )
-    )
-
-    # Long format
-    (
-        predictions_long
-        .repartitionByRange(*key_cols)
+        .repartitionByRange('study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id')
         .write
         .parquet(
             args.out_long,
@@ -160,10 +113,7 @@ def parse_args():
     # Input paths
     parser.add_argument('--in_ft', metavar="<parquet>", help="Input feature matrix with gold-standards", type=str, required=True)
     parser.add_argument('--in_model_pattern', metavar="<str>", help="Glob pattern for trained models", type=str, required=True)
-    # Params
-    parser.add_argument('--exclude_studies', metavar="<str>", help="List of study IDs to exclude", type=str, nargs='+', default=[])
     # Outputs
-    parser.add_argument('--out_wide', metavar="<parquet>", help="Output wide parquet containing predictions", type=str, required=True)
     parser.add_argument('--out_long', metavar="<parquet>", help="Output long parquet containing predictions", type=str, required=True)
     args = parser.parse_args()
     return args
