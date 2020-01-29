@@ -2,11 +2,11 @@
 
 Workflows to run locus-to-gene (L2G) ML scoring pipeline. This repository conatins code to:
 
-1. Engineer L2G feature-matrix
-2. Process and join gold-standards (training data)
-3. Train XGBoost classifier
-4. Validate model under cross-validation
-5. Use model to prioritise genes for all loci
+1. [Engineer L2G feature-matrix](#step-1-feature-engineering)
+2. [Process and join gold-standards (training data)](#step-2-join-gold-standard-training-data)
+3. [Train XGBoost classifier](#step-3-train-classifier)
+4. [Validate model under cross-validation](#step-4-validate-model)
+5. [Use model to prioritise genes for all loci](#step-5-prioritise-genes)
 
 Step 1 is to be ran on DataProc. Steps 2-5 to be ran on local compute (e.g. 32 core standard GCP).
 
