@@ -34,6 +34,61 @@ def main():
     do_plots = True
     do_clf_report = True
 
+    # Map feature names
+    feature_name_map = {
+        'dist_foot_min': 'Distance to gene [min]',
+        'dist_foot_min_nbh': 'Distance to gene [min; nbh]',
+        'dist_foot_ave': 'Distance to gene [average]',
+        'dist_foot_ave_nbh': 'Distance to gene [average; nbh]',
+        'dist_tss_min': 'Distance to TSS [min]',
+        'dist_tss_min_nbh': 'Distance to TSS [min; nbh]',
+        'dist_tss_ave': 'Distance to TSS [average]',
+        'dist_tss_ave_nbh': 'Distance to TSS [average; nbh]',
+        'eqtl_coloc_llr_max': 'eQTL coloc [max]',
+        'eqtl_coloc_llr_max_neglogp': 'eQTL coloc [pval]',
+        'eqtl_coloc_llr_max_nbh': 'eQTL coloc [max; nbh]',
+        'pqtl_coloc_llr_max': 'pQTL coloc [max]',
+        'pqtl_coloc_llr_max_neglogp': 'pQTL coloc [pval]',
+        'pqtl_coloc_llr_max_nbh': 'pQTL coloc [max; nbh]',
+        'eqtl_pics_clpp_max': 'eQTL PICS [max]',
+        'eqtl_pics_clpp_max_neglogp': 'eQTL PICS [pval]',
+        'eqtl_pics_clpp_max_nhb': 'eQTL PICS [max; nbh]',
+        'pqtl_pics_clpp_max': 'pQTL PICS [max]',
+        'pqtl_pics_clpp_max_neglogp': 'pQTL PICS [pval]',
+        'pqtl_pics_clpp_max_nhb': 'pQTL PICS [max; nbh]',
+        'dhs_prmtr_max': 'DHS-promoter correlation [max]',
+        'dhs_prmtr_max_nbh': 'DHS-promoter correlation [max; nbh]',
+        'dhs_prmtr_ave': 'DHS-promoter correlation [average]',
+        'dhs_prmtr_ave_nbh': 'DHS-promoter correlation [average; nbh]',
+        'enhc_tss_max': 'Enhancer-TSS correlation [max]',
+        'enhc_tss_max_nbh': 'Enhancer-TSS correlation [max; nbh]',
+        'enhc_tss_ave': 'Enhancer-TSS correlation [average]',
+        'enhc_tss_ave_nbh': 'Enhancer-TSS correlation [average; nbh]',
+        'pchic_max': 'PCHiC score [max]',
+        'pchic_max_nbh': 'PCHiC score [max; nbh]',
+        'pchic_ave': 'PCHiC score [average]',
+        'pchic_ave_nbh': 'PCHiC score [average; nbh]',
+        'pchicJung_max': 'PCHiC Jung score [max]',
+        'pchicJung_max_nbh': 'PCHiC Jung score [max; nbh]',
+        'pchicJung_ave': 'PCHiC Jung score [average]',
+        'pchicJung_ave_nbh': 'PCHiC Jung score [average; nbh]',
+        'vep_credset_max': 'VEP score [max]',
+        'vep_credset_max_nbh': 'VEP score [max; nbh]',
+        'vep_ave': 'VEP score [average]',
+        'vep_ave_nbh': 'VEP score [average; nbh]',
+        'polyphen_credset_max': 'PolyPhen score [max]',
+        'polyphen_credset_max_nbh': 'PolyPhen score [max; nbh]',
+        'polyphen_ave': 'PolyPhen score [average]',
+        'polyphen_ave_nbh': 'PolyPhen score [average; nbh]',
+        'count_credset_95': 'Credible set size',
+        'has_sumstats': 'Whether summary stats available',
+        'gene_count_lte_50k': 'Gene count within 50kb',
+        'gene_count_lte_100k': 'Gene count within 100kb',
+        'gene_count_lte_250k': 'Gene count within 250kb',
+        'gene_count_lte_500k': 'Gene count within 500kb',
+        'proteinAttenuation': 'Protein attenuation'
+    }
+
     # Define metrics for the classification report
     metrics = {
         # Scores requiring predictions only
@@ -110,20 +165,20 @@ def main():
     # Iterate over training groups
     for (clf, ft, gs_training), group in pred_grp:
 
-        print('Processing', clf, ft, gs_training, '...')
+        print('\nProcessing', clf, ft, gs_training, '...')
 
         # Make testing gold-standard sets. This is the same as in 1_train_models.py
         gs_sets = {
-            'high_medium_low': group['gs_confidence'].isin(['High', 'Medium', 'Low']),
+            #'high_medium_low': group['gs_confidence'].isin(['High', 'Medium', 'Low']),
             'high_medium': group['gs_confidence'].isin(['High', 'Medium']),
-            'high': group['gs_confidence'].isin(['High']),
-            'sumstat_only': group['has_sumstats'] == 1,
-            'progem': group['gs_set'] == 'ProGeM',
-            't2d': group['gs_set'] == 'T2D Knowledge Portal ',
-            'chembl_all': group['gs_set'].isin(['ChEMBL_IV', 'ChEMBL_III', 'ChEMBL_II']),
-            'chembl_excl_II': group['gs_set'].isin(['ChEMBL_IV', 'ChEMBL_III']),
-            'fauman_twitter': group['gs_set'].isin(['Eric Fauman Twitter']),
-            'ot_curated': group['gs_set'].isin(['otg_curated_191108']),
+            #'high': group['gs_confidence'].isin(['High']),
+            #'sumstat_only': group['has_sumstats'] == 1,
+            #'progem': group['gs_set'] == 'ProGeM',
+            #'t2d': group['gs_set'] == 'T2D Knowledge Portal ',
+            #'chembl_all': group['gs_set'].isin(['ChEMBL_IV', 'ChEMBL_III', 'ChEMBL_II']),
+            #'chembl_excl_II': group['gs_set'].isin(['ChEMBL_IV', 'ChEMBL_III']),
+            #'fauman_twitter': group['gs_set'].isin(['Eric Fauman Twitter']),
+            #'ot_curated': group['gs_set'].isin(['otg_curated_191108']),
         }
 
         # Iterate over testing gold-standard sets
@@ -154,13 +209,14 @@ def main():
                 os.makedirs(os.path.dirname(out_path), exist_ok=True)
 
                 # Initiate figure
-                fig = plt.figure(figsize=(15, 10), dpi=300)
+                fig = plt.figure(figsize=(18, 18), dpi=300)
                 fig.suptitle(' '.join([
                     clf,
                     'training=' + gs_training,
                     'testing=' + gs_test,
                     ft]))
-                grid_spec = gridspec.GridSpec(6, 2)
+                grid_spec = gridspec.GridSpec(7, 8)
+                grid_spec.update(wspace=1)#, hspace=0.5)
 
                 # Make plot data
                 y_true = group_subset['gold_standard_status'].tolist()
@@ -177,7 +233,7 @@ def main():
                     })
 
                 # Plot precision-recall curve
-                ax_prc = plt.subplot(grid_spec[0:2, 0])
+                ax_prc = plt.subplot(grid_spec[0:2, 0:4])
                 ax_prc = plot_precision_recall_curve(
                     y_true=y_true,
                     probas_pred=y_proba,
@@ -187,7 +243,7 @@ def main():
                 fig.add_subplot(ax_prc)
 
                 # Plot ROC curve
-                ax_roc = plt.subplot(grid_spec[0:2, 1])
+                ax_roc = plt.subplot(grid_spec[0:2, 4:8])
                 ax_roc = plot_roc_curve(
                     y_true=y_true,
                     probas_pred=y_proba,
@@ -197,8 +253,8 @@ def main():
                 fig.add_subplot(ax_roc)
 
                 # Plot calibration curve
-                ax_cal_curve = plt.subplot(grid_spec[3:5, 0])
-                ax_cal_hist = plt.subplot(grid_spec[5, 0])
+                ax_cal_curve = plt.subplot(grid_spec[3:5, 0:4])
+                ax_cal_hist = plt.subplot(grid_spec[5, 0:4])
                 ax_cal_curve, ax_cal_hist = plot_calibration_curve(
                     y_true=y_true,
                     probas_pred=y_proba,
@@ -210,14 +266,14 @@ def main():
                 fig.add_subplot(ax_cal_hist)
 
                 # Feature importances
-                ax_ftimp = plt.subplot(grid_spec[3:5, 1])
+                ax_ftimp = plt.subplot(grid_spec[3:7, 5:8])
                 ax_ftimp = plot_feature_importances(
                     fold_data=fold_data,
                     feature_names=ft_imp[clf][ft]['feature_names'],
                     ax=ax_ftimp,
                     subtitle=None)
                 fig.add_subplot(ax_ftimp)
-
+                
                 # Plot and save figure
                 plt.savefig(out_path)
                 plt.close()
@@ -356,25 +412,25 @@ def plot_roc_curve(y_true, probas_pred, ax, subtitle=None,
             label='Overall AUC = {:.2f}'.format(score))
 
     # Plot each fold
-    for fold in fold_data:
+    for i, fold in enumerate(fold_data):
         fpr, tpr, _ = roc_curve(
             fold['y_true'], fold['y_proba'])
         score = auc(fpr, tpr)
         ax.plot(fpr, tpr, alpha=0.2,
-            label='{0} AUC = {1:.2f}'.format(
-                fold['fold_name'], score)
+            label='Fold {0} AUC = {1:.2f}'.format(
+                i + 1, score)
             )
 
     # Add labels
-    ax.set_xlabel('False Positive Rate')
-    ax.set_ylabel('True Positive Rate')
+    ax.set_xlabel('False Positive Rate', fontsize=16)
+    ax.set_ylabel('True Positive Rate', fontsize=16)
     ax.set_ylim([0.0, 1.05])
     ax.set_xlim([0.0, 1.0])
-    ax.legend(loc="best", prop={'size': 6})
+    ax.legend(loc="best", prop={'size': 12})
     if subtitle:
-        ax.set_title('Receiver Operating Characteristic\n{}'.format(title))
+        ax.set_title('Receiver Operating Characteristic\n{}'.format(title), fontdict={'fontsize': 18})
     else:
-        ax.set_title('Receiver Operating Characteristic')
+        ax.set_title('Receiver Operating Characteristic', fontdict={'fontsize': 18})
 
     return ax
 
@@ -405,30 +461,30 @@ def plot_calibration_curve(y_true, probas_pred, ax_curve, ax_hist,
 
     # Plot each fold
     if fold_data:
-        for fold in fold_data:
+        for i, fold in enumerate(fold_data):
             fraction_of_positives, mean_predicted_value = \
             calibration_curve(fold['y_true'], fold['y_proba'],
                 n_bins=n_bins)
             ax_curve.plot(mean_predicted_value, fraction_of_positives, "s-",
-                label=fold['fold_name'], alpha=0.2)
+                label=f'Fold {i+1}', alpha=0.2)
             ax_hist.hist(probas_pred, range=(0, 1), bins=10,
-                label=fold['fold_name'],
+                label=f'Fold {i+1}',
                 histtype="step", lw=2, alpha=0.2)
             
     # Add labels to histogram
-    ax_hist.set_xlabel('Mean predicted value')
-    ax_hist.set_ylabel('Count')
+    ax_hist.set_xlabel('Mean predicted value', fontsize=16)
+    ax_hist.set_ylabel('Count', fontsize=16)
     ax_hist.set_xlim([0.0, 1.0])
     # Add labels to curve
     ax_curve.set_xticklabels([])
-    ax_curve.set_ylabel('Fraction of positives')
+    ax_curve.set_ylabel('Fraction of positives', fontsize=16)
     ax_curve.set_ylim([0.0, 1.05])
     ax_curve.set_xlim([0.0, 1.0])
-    ax_curve.legend(loc="best", prop={'size': 6})
+    ax_curve.legend(loc="best", prop={'size': 12})
     if subtitle:
-        ax_curve.set_title('Calibration Curve\n{}'.format(title))
+        ax_curve.set_title('Calibration Curve\n{}'.format(title), fontdict={'fontsize': 18})
     else:
-        ax_curve.set_title('Calibration Curve')
+        ax_curve.set_title('Calibration Curve', fontdict={'fontsize': 18})
 
     return ax_curve, ax_hist
 
@@ -448,43 +504,50 @@ def plot_feature_importances(fold_data, feature_names, ax,  subtitle=None):
     # Calculate mean feature importance across folds
     ft_imps = np.array([fold['ft_imp'] for fold in fold_data])
     ft_imps_mean = list(np.mean(ft_imps, axis=0))
+
+    # Sort from high to low
+    srt_idx = np.argsort(ft_imps_mean)#[::-1]
+    ft_imps_mean = np.array(ft_imps_mean)[srt_idx]
+    feature_names = np.array(feature_names)[srt_idx]
     
     # Plot main result
     x_min_pos = [x - bar_width for x in range(len(ft_imps_mean))]
     x_max_pos = [x + bar_width for x in range(len(ft_imps_mean))]
-    ax.hlines(ft_imps_mean, x_min_pos, x_max_pos, label='Overall', colors='b', alpha=0.8)
+    ax.vlines(ft_imps_mean, x_min_pos, x_max_pos, label='Overall', colors='b', alpha=0.8)
 
     # Plot each fold
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b',
-              '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+    # colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b',
+    #           '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
     for i, fold in enumerate(fold_data):
-        ax.hlines(
-            fold['ft_imp'],
+        fold_values = np.array(fold['ft_imp'])[srt_idx]
+        ax.vlines(
+            fold_values,
             x_min_pos,
             x_max_pos,
-            label=fold['fold_name'],
-            color=colors[i],
+            # label=f'Fold {i+1}',
+            label=f'Folds',
+            color='grey',
             alpha=0.2
         )
 
     # Add horizontal lines
-    ax.axhline(y=np.max(ft_imps_mean), linestyle='--', alpha=0.2)
-    ax.axhline(y=np.min(ft_imps_mean), linestyle='--', alpha=0.2)
+    ax.axvline(x=np.max(ft_imps_mean), linestyle='--', alpha=0.2)
+    ax.axvline(x=np.min(ft_imps_mean), linestyle='--', alpha=0.2)
 
     # Add vertical lines
     for pos in x_min_pos[0:1] + x_max_pos:
-        ax.axvline(pos, linestyle='-', alpha=0.1)
+        ax.axhline(pos, linestyle='-', alpha=0.1)
 
     # Add labels
-    ax.set_ylabel('Importance')
-    ax.set_xticks(range(len(ft_imps_mean)))
-    ax.set_xticklabels(feature_names)
-    ax.xaxis.set_tick_params(rotation=90)
-    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 6})
+    ax.set_xlabel('Importance', fontsize=16)
+    ax.set_yticks(range(len(ft_imps_mean)))
+    ax.set_yticklabels(feature_names, fontsize=12)
+    # ax.xaxis.set_tick_params(rotation=90)
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 12})
     if subtitle:
-        ax.set_title('Feature Importances\n{}'.format(title))
+        ax.set_title('Feature Importances\n{}'.format(title), fontdict={'fontsize': 18})
     else:
-        ax.set_title('Feature Importances')
+        ax.set_title('Feature Importances', fontdict={'fontsize': 18})
 
     return ax
 

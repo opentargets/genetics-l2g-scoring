@@ -1,6 +1,6 @@
 # Locus-to-gene scoring pipeline
 
-Workflows to run locus-to-gene (L2G) ML scoring pipeline. This repository conatins code to:
+Workflows to run locus-to-gene (L2G) ML scoring pipeline. This repository contains code to:
 
 1. [Engineer L2G feature-matrix](#step-1-feature-engineering)
 2. [Process and join gold-standards (training data)](#step-2-join-gold-standard-training-data)
@@ -8,12 +8,13 @@ Workflows to run locus-to-gene (L2G) ML scoring pipeline. This repository conati
 4. [Validate model under cross-validation](#step-4-validate-model)
 5. [Use model to prioritise genes for all loci](#step-5-prioritise-genes)
 
-Step 1 is to be ran on DataProc. Steps 2-5 to be ran on local compute (e.g. 32 core standard GCP).
+Step 1 is run on DataProc. Steps 2-5 run on local compute (e.g. 32 core standard GCP).
 
 ## Setup environment
 
 ```bash
 # Install java 8 e.g. using apt
+sudo apt-get update -y
 sudo apt install -yf openjdk-8-jre-headless openjdk-8-jdk
 
 # Authenticate google cloud storage
@@ -24,9 +25,12 @@ conda env create -n l2g --file environment.yaml
 
 # Activate environment, set RAM availability and output version name
 conda activate l2g
-export PYSPARK_SUBMIT_ARGS="--driver-memory 50g pyspark-shell"
+export PYSPARK_SUBMIT_ARGS="--driver-memory 150g pyspark-shell"
 version_date=`date +%y%m%d`
 #version_date=200127
+#version_date=210921
+#version_date=211015
+version_date=211108
 ```
 
 ## Step 1: Feature engineering
@@ -40,23 +44,24 @@ Integrates fine-mapping information with functional genomics datasets to generat
 gcloud beta dataproc clusters create \
     em-cluster-ml-features \
     --image-version=1.4 \
+    --region europe-west1 \
+    --zone=europe-west1-d \
     --properties=spark:spark.debug.maxToStringFields=100,spark:spark.executor.cores=63,spark:spark.executor.instances=1 \
     --metadata 'PIP_PACKAGES=networkx==2.1 pandas==0.25.0' \
     --initialization-actions gs://dataproc-initialization-actions/python/pip-install.sh \
-    --master-machine-type=n1-highmem-64 \
+    --master-machine-type=n2-highmem-64 \
     --master-boot-disk-size=1TB \
-    --num-master-local-ssds=1 \
-    --zone=europe-west1-d \
+    --num-master-local-ssds=0 \
     --initialization-action-timeout=20m \
     --single-node \
     --max-idle=10m
 
 # To monitor
 gcloud compute ssh em-cluster-ml-features-m \
-  --project=open-targets-genetics \
+  --project=open-targets-genetics-dev \
   --zone=europe-west1-d -- -D 1080 -N
 
-"EdApplications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
   --proxy-server="socks5://localhost:1080" \
   --user-data-dir="/tmp/em-cluster-ml-features-m" http://em-cluster-ml-features-m:8088
 ```
@@ -72,29 +77,33 @@ cd 1_feature_engineering
 # Update input file paths to latest versions
 nano 1_prepare_inputs.py
 
-# Create input datasets
+# Create input datasets (took 32 min on last run)
 gcloud dataproc jobs submit pyspark \
     --cluster=em-cluster-ml-features \
+    --region europe-west1 \
     1_prepare_inputs.py -- --version $version_date
 
-# Create features.
+# Create features. (~1 hr?)
 # N.B. distance must be run last.
 cd 2_make_features
 for inf in dhs_prmtr.py enhc_tss.py fm_coloc.py others.py pchicJung.py pics_coloc.py polyphen.py vep.py distance.py; do
     gcloud dataproc jobs submit pyspark \
         --cluster=em-cluster-ml-features \
+        --region europe-west1 \
         $inf -- \
         --version $version_date
 done
 
 # Copy proteinAttenuation feature over (no alterations needed)
 gsutil -m rsync -r \
-  gs://genetics-portal-staging/l2g/$version_date/features/inputs/proteinAttenuation.parquet \
-  gs://genetics-portal-staging/l2g/$version_date/features/output/separate/proteinAttenuation.parquet
+  gs://genetics-portal-dev-staging/l2g/$version_date/features/inputs/proteinAttenuation.parquet \
+  gs://genetics-portal-dev-staging/l2g/$version_date/features/output/separate/proteinAttenuation.parquet
 
 # Join features
+cd ..
 gcloud dataproc jobs submit pyspark \
     --cluster=em-cluster-ml-features \
+    --region europe-west1 \
     3_join_features.py -- --version $version_date
 
 # Change back to root directory
@@ -121,17 +130,17 @@ mkdir -p input_data/features.raw.$version_date.parquet \
 wget --directory-prefix input_data $gold_standards_url
 # b. Feature matrix
 gsutil -m rsync -r \
-  gs://genetics-portal-staging/l2g/$version_date/features/output/features.raw.$version_date.parquet \
+  gs://genetics-portal-dev-staging/l2g/$version_date/features/output/features.raw.$version_date.parquet \
   input_data/features.raw.$version_date.parquet
 # c. Other feature inputs (string, cluster and toploci data)
 gsutil -m rsync -r \
-  gs://genetics-portal-staging/l2g/$version_date/features/inputs/string.parquet \
+  gs://genetics-portal-dev-staging/l2g/$version_date/features/inputs/string.parquet \
   input_data/string.$version_date.parquet
 gsutil -m rsync -r \
-  gs://genetics-portal-staging/l2g/$version_date/features/inputs/clusters.parquet \
+  gs://genetics-portal-dev-staging/l2g/$version_date/features/inputs/clusters.parquet \
   input_data/clusters.$version_date.parquet
 gsutil -m rsync -r \
-  gs://genetics-portal-staging/l2g/$version_date/features/inputs/toploci.parquet \
+  gs://genetics-portal-dev-staging/l2g/$version_date/features/inputs/toploci.parquet \
   input_data/toploci.$version_date.parquet
 
 # Process and join gold-standards to feature matrix
@@ -146,8 +155,8 @@ python process_goldstandards.py \
   --out_log_dir output/logs_$version_date
 
 # Backup to GCS
-gsutil -m rsync -r output gs://genetics-portal-staging/l2g/$version_date/gold_standards/
-gsutil cp input_data/$(basename $gold_standards_url) gs://genetics-portal-staging/l2g/$version_date/gold_standards/
+gsutil -m rsync -r output gs://genetics-portal-dev-staging/l2g/$version_date/gold_standards/
+gsutil cp input_data/$(basename $gold_standards_url) gs://genetics-portal-dev-staging/l2g/$version_date/gold_standards/
 
 # Change back to root directory
 cd ..
@@ -169,7 +178,7 @@ python train_model_xgboost.py \
   --out_dir output/$version_date/models
 
 # Backup to GCS
-gsutil -m rsync -r output/$version_date/models gs://genetics-portal-staging/l2g/$version_date/models/
+gsutil -m rsync -r output/$version_date/models gs://genetics-portal-dev-staging/l2g/$version_date/models/
 
 # Change back to root directory
 cd ..
@@ -202,7 +211,7 @@ python 2_validation_plots.py \
   --out_report output/$version_date/classification_report.tsv
 
 # Backup to GCS
-gsutil -m rsync -r output/$version_date gs://genetics-portal-staging/l2g/$version_date/validation/
+gsutil -m rsync -r output/$version_date gs://genetics-portal-dev-staging/l2g/$version_date/validation/
 
 # Change back to root directory
 cd ..
@@ -232,7 +241,7 @@ python 2_format_l2g_table.py \
   --keep_gsset high_medium
 
 # Backup to GCS
-gsutil -m rsync -r output/$version_date gs://genetics-portal-staging/l2g/$version_date/predictions/
+gsutil -m rsync -r output/$version_date gs://genetics-portal-dev-staging/l2g/$version_date/predictions/
 
 # Change back to root directory
 cd ..
