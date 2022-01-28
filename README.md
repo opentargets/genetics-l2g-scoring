@@ -27,10 +27,9 @@ conda env create -n l2g --file environment.yaml
 conda activate l2g
 export PYSPARK_SUBMIT_ARGS="--driver-memory 150g pyspark-shell"
 version_date=`date +%y%m%d`
-#version_date=200127
-#version_date=210921
-#version_date=211015
-version_date=211108
+#version_date=211108
+#version_date=220113
+version_date=220128
 ```
 
 ## Step 1: Feature engineering
@@ -46,7 +45,7 @@ gcloud beta dataproc clusters create \
     --image-version=1.4 \
     --region europe-west1 \
     --zone=europe-west1-d \
-    --properties=spark:spark.debug.maxToStringFields=100,spark:spark.executor.cores=63,spark:spark.executor.instances=1 \
+    --properties=spark:spark.debug.maxToStringFields=100,spark:spark.executor.cores=12,spark:spark.executor.instances=5 \
     --metadata 'PIP_PACKAGES=networkx==2.1 pandas==0.25.0' \
     --initialization-actions gs://dataproc-initialization-actions/python/pip-install.sh \
     --master-machine-type=n2-highmem-64 \
@@ -71,6 +70,8 @@ gcloud compute ssh em-cluster-ml-features-m \
 Input file paths are specified in `1_feature_engineering/1_prepare_inputs.py`!
 
 ```bash
+tmux
+
 # Change to working directory
 cd 1_feature_engineering
 
