@@ -25,11 +25,12 @@ conda env create -n l2g --file environment.yaml
 
 # Activate environment, set RAM availability and output version name
 conda activate l2g
-export PYSPARK_SUBMIT_ARGS="--driver-memory 150g pyspark-shell"
+export PYSPARK_SUBMIT_ARGS="--driver-memory 100g pyspark-shell"
 version_date=`date +%y%m%d`
 #version_date=211108
 #version_date=220113
-version_date=220128
+#version_date=220128
+version_date=220208
 ```
 
 ## Step 1: Feature engineering
@@ -226,11 +227,15 @@ Prioritises genes across all loci in the feature matrix. Processes output for L2
 # Change to working directory
 cd 5_prioritise_genes
 
+# If the model wasn't retrained, then you could use an old version here
+model_version=$version_date
+model_version=220128
+
 # Load models and make predictions across all loci
 # (don't expand model pattern glob)
 python 1_prioritise_genes_all_loci.py \
   --in_ft ../2_process_training_data/output/featurematrix_w_goldstandards.full.$version_date.parquet \
-  --in_model_pattern ../3_train_model/output/$version_date/models/'*.model.joblib.gz' \
+  --in_model_pattern ../3_train_model/output/$model_version/models/'*.model.joblib.gz' \
   --out_long output/$version_date/predictions.full.$version_date.long.parquet
 
 # Format locus-to-gene table for export
