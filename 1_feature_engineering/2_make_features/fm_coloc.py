@@ -17,8 +17,8 @@ def main():
 
     # Parse args
     args = parse_args()
-    in_path = 'gs://genetics-portal-staging/l2g/{v}/features/inputs/'.format(v=args.version)
-    out_path = 'gs://genetics-portal-staging/l2g/{v}/features/output/separate/'.format(v=args.version)
+    in_path = 'gs://genetics-portal-dev-staging/l2g/{v}/features/inputs/'.format(v=args.version)
+    out_path = 'gs://genetics-portal-dev-staging/l2g/{v}/features/output/separate/'.format(v=args.version)
     
     # Paths
     in_coloc = in_path + 'coloc.parquet'

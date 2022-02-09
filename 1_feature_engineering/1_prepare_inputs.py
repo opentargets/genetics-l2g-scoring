@@ -20,37 +20,37 @@ def main():
     args = parse_args()
 
     # File paths
-    out_gs = 'gs://genetics-portal-staging/l2g/{v}/features/inputs/'.format(v=args.version)
+    out_gs = 'gs://genetics-portal-dev-staging/l2g/{v}/features/inputs/'.format(v=args.version)
     manifest = {
         'study': {
-            'in': 'gs://genetics-portal-staging/v2d/200123/studies.parquet',
+            'in': 'gs://genetics-portal-dev-staging/v2d/220208/studies.parquet',
             'out': out_gs + 'studies.parquet'
         },
         'toploci': {
-            'in': 'gs://genetics-portal-staging/v2d/200123/toploci.parquet',
+            'in': 'gs://genetics-portal-dev-staging/v2d/220208/toploci.parquet',
             'out': out_gs + 'toploci.parquet'
         },
         'credsets_v2d': {
-            'in_fm': 'gs://genetics-portal-staging/finemapping/190612/credset/part-*-942d21cd-fb9e-475a-aa0b-8b4cd7db071f-c000.json.gz',
-            'in_pics': 'gs://genetics-portal-staging/v2d/200123/ld.parquet',
+            'in_fm': 'gs://genetics-portal-dev-staging/finemapping/220113_merged/credset/part-*.json.gz',
+            'in_pics': 'gs://genetics-portal-dev-staging/v2d/220208/ld.parquet',
             'out': out_gs + 'credsets_v2d.parquet'
         },
         'credsets_qtl': {
-            'in': 'gs://genetics-portal-staging/finemapping/190612/credset/part-*-942d21cd-fb9e-475a-aa0b-8b4cd7db071f-c000.json.gz',
+            'in': 'gs://genetics-portal-dev-staging/finemapping/220113_merged/credset/part-*.json.gz',
             'in_lut': 'gs://genetics-portal-input/luts/phenotype_id_lut.190629.json', # This is a lut to map from non-gene phenotype ID to Ensembl ID
             'out': out_gs + 'credsets_qtl.parquet'
         },
         'coloc': {
-            'in': 'gs://genetics-portal-staging/coloc/190612/coloc_processed_w_betas.parquet',
+            'in': 'gs://genetics-portal-dev-staging/coloc/220127/coloc_processed_w_betas_fixed.parquet',
             'out': out_gs + 'coloc.parquet'
         },
         'v2g': {
-            'in': 'gs://genetics-portal-output/190505/v2g/part-*-b6ea7e74-886d-4c85-85c2-9199b7bfc7b8-c000.json',
+            'in': 'gs://genetics-portal-dev-data/22.01.2/outputs/v2g/part-*.json',
             'out_interval': out_gs + 'interval.parquet',
             'out_vep': out_gs + 'vep.parquet'
         },
         'genes': {
-            'in': 'gs://genetics-portal-data/lut/homo_sapiens_core_96_38_genes.json',
+            'in': 'gs://genetics-portal-dev-data/22.01/inputs/lut/homo_sapiens_core_105_38_genes.json.gz',
             'out': out_gs + 'genes.parquet'
         },
         'polyphen': {
@@ -69,7 +69,7 @@ def main():
             'out': out_gs + 'clusters.parquet'
         },
         'pchicJung': {
-            'in': 'gs://genetics-portal-staging/v2g/interval/pchic/jung2019/190920/data.parquet',
+            'in': 'gs://genetics-portal-dev-staging/v2g/interval/pchic/jung2019/190920/data.parquet',
             'out': out_gs + 'pchicJung.parquet'
         },
         'protein_attenuation': {

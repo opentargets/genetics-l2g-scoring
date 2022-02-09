@@ -18,8 +18,8 @@ def main():
     args = parse_args()
 
     # File paths
-    in_path = 'gs://genetics-portal-staging/l2g/{v}/features/output/separate/'.format(v=args.version)
-    out_path = 'gs://genetics-portal-staging/l2g/{v}/features/output/features.raw.{v}.parquet'.format(v=args.version)
+    in_path = 'gs://genetics-portal-dev-staging/l2g/{v}/features/output/separate/'.format(v=args.version)
+    out_path = 'gs://genetics-portal-dev-staging/l2g/{v}/features/output/features.raw.{v}.parquet'.format(v=args.version)
 
     # Make spark session
     global spark

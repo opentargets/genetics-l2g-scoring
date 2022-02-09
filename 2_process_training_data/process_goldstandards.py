@@ -21,7 +21,13 @@ def main():
 
     # Make spark session
     global spark
-    spark = (pyspark.sql.SparkSession.builder.getOrCreate())
+    spark = (pyspark.sql.SparkSession.builder
+             .config("spark.master", "local[*]")
+             .config("spark.driver.maxResultSize", "20g")
+             .config("spark.driver.memory", "100g")
+             .config("spark.executor.memory", "4g")
+             .getOrCreate()
+            )
     print('Spark version: ', spark.version)
 
     #
