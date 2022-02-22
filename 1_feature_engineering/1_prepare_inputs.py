@@ -23,16 +23,16 @@ def main():
     out_gs = 'gs://genetics-portal-dev-staging/l2g/{v}/features/inputs/'.format(v=args.version)
     manifest = {
         'study': {
-            'in': 'gs://genetics-portal-dev-staging/v2d/220208/studies.parquet',
+            'in': 'gs://genetics-portal-dev-staging/v2d/220210/studies.parquet',
             'out': out_gs + 'studies.parquet'
         },
         'toploci': {
-            'in': 'gs://genetics-portal-dev-staging/v2d/220208/toploci.parquet',
+            'in': 'gs://genetics-portal-dev-staging/v2d/220210/toploci.parquet',
             'out': out_gs + 'toploci.parquet'
         },
         'credsets_v2d': {
             'in_fm': 'gs://genetics-portal-dev-staging/finemapping/220113_merged/credset/part-*.json.gz',
-            'in_pics': 'gs://genetics-portal-dev-staging/v2d/220208/ld.parquet',
+            'in_pics': 'gs://genetics-portal-dev-staging/v2d/220210/ld.parquet',
             'out': out_gs + 'credsets_v2d.parquet'
         },
         'credsets_qtl': {
