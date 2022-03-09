@@ -18,17 +18,17 @@ ROOT_DIR = Path(__file__).parent.parent.absolute()
 
 
 def main(
-    all_loci: str,
+    feature_matrix: str,
     classifier: str,
     output_file: str,
 ) -> None:
 
-    all_loci = pd.read_parquet(all_loci)
+    feature_matrix = pd.read_parquet(feature_matrix)
     classifier = joblib.load(ROOT_DIR / classifier)
 
     # Make predictions
-    all_loci['y_proba'] = classifier['model'].predict_proba(
-        all_loci
+    feature_matrix['y_proba'] = classifier['model'].predict_proba(
+        feature_matrix
         # Keep only needed features
         .loc[:, classifier['run_info']['features']]
         # Recode True/False in has_sumstats to 1/0
@@ -36,7 +36,7 @@ def main(
     )[:, 1]
 
     # Save predictions
-    l2g_predictions = format_predictions(all_loci)
+    l2g_predictions = format_predictions(feature_matrix)
     write_parquet(l2g_predictions, output_file)
     logging.info(f'Saved predictions to {output_file}')
     return None
@@ -57,7 +57,7 @@ def write_parquet(data: pd.DataFrame, output_file: str) -> None:
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--all_loci',
+        '--feature_matrix',
         type=str,
         required=True,
         help='Feature matrix containing all loci. It is the output of `2_process_training_data`.',
@@ -79,4 +79,4 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.INFO)
 
-    main(all_loci=args.all_loci, classifier=args.classifier, output_file=args.output_file)
+    main(feature_matrix=args.feature_matrix, classifier=args.classifier, output_file=args.output_file)

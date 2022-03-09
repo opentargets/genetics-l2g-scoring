@@ -14,14 +14,14 @@ configfile: 'configuration.yaml'
 # --- Rules --- #
 rule l2g_predict:
     input:
-        all_loci = config['l2g']['feature_matrix'],
+        feature_matrix = config['l2g']['feature_matrix'],
         classifier = config['l2g']['model'],
     output:
         predictions = f"{config['l2g']['output_dir']}/l2g-{timestamp}.parquet",
     shell:
         """
         python predict.py \
-            --all_loci {input.all_loci} \
+            --feature_matrix {input.feature_matrix} \
             --classifier {input.classifier} \
             --output_file {output.predictions}
         """
