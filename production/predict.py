@@ -4,6 +4,7 @@ Predicts values for all loci in feature matrix.
 '''
 import argparse
 import logging
+from typing import Tuple
 
 import gcsfs
 import joblib
@@ -22,11 +23,11 @@ def main(
 ) -> None:
 
     # Load data and model
-    feature_matrix = pd.read_parquet(feature_matrix)
+    feature_matrix = pd.read_parquet(feature_matrix).head()
 
     bucket_name, model_name = parse_gs_url(classifier)
     classifier = load_model(bucket_name, model_name)
-    logging.info(f'{model_name}has been successfully loaded.')
+    logging.info(f'{model_name} has been successfully loaded.')
 
     # Make predictions
     feature_matrix['y_proba'] = classifier['model'].predict_proba(
@@ -50,7 +51,7 @@ def load_model(bucket_name, file_name):
         return joblib.load(f)
 
 
-def parse_gs_url(gs_url):
+def parse_gs_url(gs_url: str) -> Tuple[str, str]:
     gs_url_split = gs_url.replace("gs://", "").split("/")
     return '/'.join(gs_url_split[:-1]), gs_url_split[-1]
 
