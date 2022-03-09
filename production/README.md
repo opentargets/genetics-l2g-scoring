@@ -25,7 +25,7 @@ gcloud dataproc clusters create il-l2g-conda \
 ```bash
 gcloud dataproc jobs submit pyspark 
     --cluster=il-l2g 
-    production/predict.py -- 
+    predict.py -- 
     --feature_matrix gs://genetics-portal-dev-staging/l2g/220212/gold_standards/featurematrix_w_goldstandards.full.220212.parquet 
     --classifier gs://genetics-portal-dev-staging/l2g/220128/models/xgboost-full_model-high_medium-0.model.joblib.gz 
     --output_file gs://ot-team/irene/l2g/predictions-2022-03-09.parquet
