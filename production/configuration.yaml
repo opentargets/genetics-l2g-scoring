@@ -1,0 +1,4 @@
+l2g:
+  feature_matrix: gs://genetics-portal-dev-staging/l2g/220212/gold_standards/featurematrix_w_goldstandards.full.220212.parquet
+  model: gs://genetics-portal-dev-staging/l2g/220128/models/xgboost-full_model-high_medium-0.model.joblib.gz
+  output_dir: 'output'

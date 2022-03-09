@@ -1,0 +1,31 @@
+#!/usr/bin/env snakemake
+
+from datetime import datetime
+from snakemake.remote.GS import RemoteProvider as GSRemoteProvider
+from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
+
+GS = GSRemoteProvider()
+HTTP = HTTPRemoteProvider()
+
+# --- Configuration --- #
+timestamp = datetime.now().strftime("%Y-%m-%d")
+configfile: 'configuration.yaml'
+
+# --- Rules --- #
+rule l2g_predict:
+    input:
+        all_loci = config['l2g']['feature_matrix'],
+        classifier = config['l2g']['model'],
+    output:
+        predictions = f"{config['l2g']['output_dir']}/l2g-{timestamp}.parquet",
+    shell:
+        """
+        python predict.py \
+            --all_loci {input.all_loci} \
+            --classifier {input.classifier} \
+            --output_file {output.predictions}
+        """
+
+
+
+
