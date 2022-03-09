@@ -22,7 +22,7 @@ def main(
 ) -> None:
 
     # Load data and model
-    feature_matrix = pd.read_parquet(feature_matrix).head()
+    feature_matrix = pd.read_parquet(feature_matrix)
 
     bucket_name, model_name = parse_gs_url(classifier)
     classifier = load_model(bucket_name, model_name)
