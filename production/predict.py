@@ -5,6 +5,7 @@ Predicts values for all loci in feature matrix.
 import argparse
 import logging
 
+import gcsfs
 import joblib
 import pandas as pd
 from pathlib import Path
@@ -14,7 +15,7 @@ from pathlib import Path
 # from pyspark.mllib.tree import GradientBoostedTreesModel
 # model = GradientBoostedTreesModel.load(sc, ROOT_DIR / MODEL_PATH)
 
-ROOT_DIR = Path(__file__).parent.parent.absolute()
+#ROOT_DIR = Path(__file__).parent.parent.absolute()
 
 
 def main(
@@ -23,8 +24,12 @@ def main(
     output_file: str,
 ) -> None:
 
-    feature_matrix = pd.read_parquet(feature_matrix)
-    classifier = joblib.load(ROOT_DIR / classifier)
+    # Load data and model
+    feature_matrix = pd.read_parquet(feature_matrix).head()
+
+    bucket_name, model_name = parse_gs_url(classifier)
+    classifier = load_model(bucket_name, model_name)
+    print('Loaded model')
 
     # Make predictions
     feature_matrix['y_proba'] = classifier['model'].predict_proba(
@@ -41,6 +46,14 @@ def main(
     logging.info(f'Saved predictions to {output_file}')
     return None
 
+def load_model(bucket_name, file_name):
+    fs = gcsfs.GCSFileSystem()
+    with fs.open(f'{bucket_name}/{file_name}') as f:
+        return joblib.load(f)
+
+def parse_gs_url(gs_url):
+    gs_url_split = gs_url.replace("gs://", "").split("/")
+    return '/'.join(gs_url_split[:-1]), gs_url_split[-1]
 
 def format_predictions(data: pd.DataFrame) -> pd.DataFrame:
     cols_keep = ['study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id', 'y_proba']
@@ -49,7 +62,7 @@ def format_predictions(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def write_parquet(data: pd.DataFrame, output_file: str) -> None:
-    Path.mkdir(Path(output_file).parents[0], exist_ok=True)
+    #Path.mkdir(Path(output_file).parents[0], exist_ok=True)
     data.to_parquet(output_file, compression='gzip')
     return None
 
