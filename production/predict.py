@@ -2,13 +2,13 @@
 '''
 Predicts values for all loci in feature matrix.
 '''
-import argparse
+from datetime import datetime
 import logging
-from typing import Tuple
 
-import gcsfs
-import joblib
 import pandas as pd
+from yaml import safe_load
+
+from src.utils import *
 
 # loading in pyspark is failing
 # from pyspark import SparkContext
@@ -45,16 +45,6 @@ def main(
     return None
 
 
-def load_model(bucket_name, file_name):
-    fs = gcsfs.GCSFileSystem()
-    with fs.open(f'{bucket_name}/{file_name}') as f:
-        return joblib.load(f)
-
-
-def parse_gs_url(gs_url: str) -> Tuple[str, str]:
-    gs_url_split = gs_url.replace("gs://", "").split("/")
-    return '/'.join(gs_url_split[:-1]), gs_url_split[-1]
-
 
 def format_predictions(data: pd.DataFrame) -> pd.DataFrame:
     cols_keep = ['study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id', 'y_proba']
@@ -62,34 +52,15 @@ def format_predictions(data: pd.DataFrame) -> pd.DataFrame:
     return data.loc[:, cols_keep].query('study_id != "GCST007236"')
 
 
-def write_parquet(data: pd.DataFrame, output_file: str) -> None:
-    data.to_parquet(output_file, compression='gzip')
-    return None
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--feature_matrix',
-        type=str,
-        required=True,
-        help='Feature matrix containing all loci. It is the output of `2_process_training_data`.',
-    )
-    parser.add_argument(
-        '--classifier',
-        type=str,
-        required=True,
-        help='Compressed XGBoost classifier. It is the output of `3_train_model`.',
-    )
-    parser.add_argument(
-        '--output_file', type=str, required=True, help='Filename of the parquet file containing the L2G predictions.'
-    )
-    return parser.parse_args()
-
-
 if __name__ == '__main__':
-    args = parse_args()
-
+    
     logging.basicConfig(level=logging.INFO)
 
-    main(feature_matrix=args.feature_matrix, classifier=args.classifier, output_file=args.output_file)
+    with open('configuration.yaml') as cf_file:
+        config = safe_load(cf_file.read())
+
+    main(
+        feature_matrix=config['l2g']['feature_matrix'],
+        classifier=config['l2g']['model'],
+        output_file=f"{config['l2g']['output_dir']}/predictions-{datetime.now().strftime('%Y-%m-%d')}.parquet",
+    )
