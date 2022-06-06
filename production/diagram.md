@@ -38,6 +38,7 @@ ID --> IE[eqtl_coloc_llr_max,<br> eqtl_coloc_llr_max_neglogp,<br> eqtl_coloc_llr
 IE --> |extracted in| IF[fm_coloc.py]:::module
 IF --- V[coloc]:::input
 V --- |pulls from| AG[<font size=5>coloc]:::pipeline
+V --- |pulls from| AB
 IF --- U[credsets_qtl]:::input
 H --> HA[DHS-gene promoter correlation]
 H --> HB[Enhancer-TSS analysis of gene expression correlation]
@@ -70,9 +71,11 @@ JF --- Z[Polyphen]:::input
 Z --- |pulls from| AH[<font size=5>Variant Annotation]:::pipeline
 
 D --> DA[Other]
-DA --> |consists of| DB[count_credset_95,<br> has_sumstats,<br> gene_count_lte_50k,<br> gene_count_lte_100k,<br> gene_count_lte_250k,<br> gene_count_lte_500k]
-DB --> |extracted in| DC[others.py]:::module
-DC --- S
+DA --> |consists of| DB[count_credset_95,<br> has_sumstats]
+DA --> |consists of| DC[gene_count_lte_50k,<br> gene_count_lte_100k,<br> gene_count_lte_250k,<br> gene_count_lte_500k]
+DB --> |extracted in| DD[others.py]:::module
+DC --> |extracted in| GB
+DD --- S
 
 classDef input fill:#F1AB86;
 classDef module fill:#CCFBFE;

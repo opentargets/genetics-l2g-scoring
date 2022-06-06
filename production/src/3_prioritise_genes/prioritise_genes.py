@@ -21,9 +21,9 @@ from utils import *
 def main(cfg: DictConfig) -> None:
 
     # Parse args
-    feature_matrix: str = cfg.l2g.feature_matrix
-    classifier: str = cfg.l2g.model
-    output_file: str = f"{cfg.l2g.output_bucket}/predictions-{datetime.now().strftime('%Y-%m-%d')}.parquet"
+    feature_matrix: str = cfg.prioritise_genes.feature_matrix
+    classifier: str = cfg.prioritise_genes.model
+    output_file: str = f"{cfg.prioritise_genes.output_bucket}/predictions-{datetime.now().strftime('%Y-%m-%d')}.parquet"
 
     # Load data and model
     feature_matrix = pd.read_parquet(feature_matrix)

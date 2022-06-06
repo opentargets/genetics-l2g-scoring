@@ -1,3 +1,16 @@
+# Usage
+## Local setup
+```bash
+# Clone working branch
+git clone --single-branch --branch il-l2g-predictions https://github.com/opentargets/genetics-l2g-scoring.git
+
+# Set up environment
+cd genetics-l2g-scoring
+conda env create --name l2g --file environment.yaml
+conda activate l2g
+```
+
+## GCP setup
 ### Start Dataproc cluster
 
 ```bash
@@ -9,7 +22,7 @@ export CLUSTER_REGION=europe-west1
 gcloud dataproc clusters create ${CLUSTER_NAME} \
     --image-version=2.0 \
     --region=${CLUSTER_REGION} \
-    --metadata 'PIP_PACKAGES=pandas scikit-learn joblib xgboost==1.4.2 gcsfs hydra-core' \
+    --metadata 'PIP_PACKAGES=pyspark scikit-learn joblib xgboost==1.4.2 pathlib gcsfs hydra-core' \
     --initialization-actions gs://goog-dataproc-initialization-actions-europe-west1/python/pip-install.sh                                                  \
     --master-machine-type=n1-standard-32 \
     --master-boot-disk-size=100
