@@ -6,9 +6,11 @@ feature_extraction:
   params:
     credset_posteriorprob_threshold: 0.0001
   processed_inputs:
-    coloc: 'processed_inputs/coloc'
-    genes: 'processed_inputs/genes'
-    credset_qtl: 'processed_inputs/credset_qtl'
+    coloc: processed_inputs/coloc
+    genes: processed_inputs/genes
+    credset_qtl: processed_inputs/credset_qtl
+  processed_features:
+    coloc: processed_features/coloc
   output:
     feature_matrix: gs://ot-team/irene/l2g/feature_matrix
 

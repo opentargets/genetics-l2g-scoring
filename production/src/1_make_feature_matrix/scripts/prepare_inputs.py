@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-'''
+"""
 Preprocesses input data necessary to build feature matrix.
-'''
-from datetime import datetime
+"""
 import logging
 
 from hydra import main
@@ -11,10 +10,9 @@ import pyspark.sql.functions as F
 
 from src.utils import *
 
-@main(config_path=f'{get_cwd()}/config', config_name="config")
-def main(cfg: DictConfig) -> None:
 
-    today = datetime.now().strftime('%Y-%m-%d')
+@main(config_path=f'{get_cwd()}/config', config_name='config')
+def main(cfg: DictConfig) -> None:
 
     # Prepare inputs
     process_coloc_table(
@@ -29,12 +27,12 @@ def main(cfg: DictConfig) -> None:
     process_credset_qtl(
         credset_path=cfg.feature_extraction.input.credset,
         posteriorprob_threshold=cfg.feature_extraction.parameters.credset_posteriorprob_threshold,
-        out_path=cfg.feature_extraction.processed_inputs.credset_qtl
+        out_path=cfg.feature_extraction.processed_inputs.credset_qtl,
     )
 
 
 def process_coloc_table(coloc_path: str, genes_path: str, out_path: str) -> None:
-    '''
+    """
     Processes coloc table to extract colocalization of molQTLs.
 
     Inputs:
@@ -43,7 +41,7 @@ def process_coloc_table(coloc_path: str, genes_path: str, out_path: str) -> None
 
     Outputs:
     - out_path: path to directory of parquet files containing processed data
-    '''
+    """
 
     coloc = (
         spark.read.parquet(coloc_path).select(
@@ -84,7 +82,7 @@ def process_coloc_table(coloc_path: str, genes_path: str, out_path: str) -> None
 
 
 def process_gene_table(genes_path: str, out_path: str) -> None:
-    '''
+    """
     Processes gene table to extract protein coding genes.
 
     Inputs:
@@ -92,12 +90,13 @@ def process_gene_table(genes_path: str, out_path: str) -> None:
 
     Outputs:
     - out_path: path to directory of parquet files containing processed data
-    '''
+    """
 
     genes = (
         spark.read.parquet(genes_path)
         # Keep only protein-coding genes
-        .filter(F.col('biotype') == 'protein_coding').select(
+        .filter(F.col('biotype') == 'protein_coding')
+        .select(
             'gene_id',
             'gene_name',
             F.col('description').alias('gene_description'),
