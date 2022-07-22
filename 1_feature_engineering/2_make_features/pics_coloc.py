@@ -207,9 +207,72 @@ def main():
         )
         .withColumn('eqtl_pics_clpp_max_nhb',
             col('eqtl_pics_clpp_max') - col('eqtl_pics_clpp_max_nhb_temp')
-            
         )
         .drop('eqtl_pics_clpp_max_nhb_temp')
+    )
+
+    #
+    # Extract sQTL features ---------------------------------------------------
+    #
+
+    clpp_agg_sqtl = clpp_agg.filter(col('qtl_type') == 'sqtl')
+
+    # Get log_cclp, qtl_neglog_p from row with max(log_cclp)
+    window_spec = (
+        Window
+        .partitionBy('study_id', 'lead_chrom', 'lead_pos', 'lead_ref',
+                     'lead_alt', 'gene_id')
+        .orderBy(desc('log_cclp'))
+    )
+    sqtl_max_cclp_local = (
+        clpp_agg_sqtl
+        .withColumn('rn', row_number().over(window_spec))
+        .filter(col('rn') == 1)
+        .select(
+            'study_id',
+            col('lead_chrom').alias('chrom'),
+            col('lead_pos').alias('pos'),
+            col('lead_ref').alias('ref'),
+            col('lead_alt').alias('alt'),
+            'gene_id',
+            col('log_cclp').alias('sqtl_pics_clpp_max'),
+            col('qtl_neglog_p').alias('sqtl_pics_clpp_max_neglogp')
+        )
+    )
+
+    # Get log_cclp from row with max(log_cclp) across any gene at each locus
+    # (neighbourhood max)
+    window_spec = (
+        Window
+        .partitionBy('study_id', 'lead_chrom', 'lead_pos', 'lead_ref',
+                     'lead_alt')
+        .orderBy(desc('log_cclp'))
+    )
+    sqtl_max_cclp_nbh = (
+        clpp_agg_sqtl
+        .withColumn('rn', row_number().over(window_spec))
+        .filter(col('rn') == 1)
+        .select(
+            'study_id',
+            col('lead_chrom').alias('chrom'),
+            col('lead_pos').alias('pos'),
+            col('lead_ref').alias('ref'),
+            col('lead_alt').alias('alt'),
+            col('log_cclp').alias('sqtl_pics_clpp_max_nhb_temp')
+        )
+    )
+
+    # Join local and neighbourhood together, then take proportion of
+    # local / neighbourhood
+    sqtl_max_cclp = (
+        sqtl_max_cclp_local.join(
+            sqtl_max_cclp_nbh,
+            on=['study_id', 'chrom', 'pos', 'ref', 'alt']
+        )
+        .withColumn('sqtl_pics_clpp_max_nhb',
+            col('sqtl_pics_clpp_max') - col('sqtl_pics_clpp_max_nhb_temp')
+        )
+        .drop('sqtl_pics_clpp_max_nhb_temp')
     )
 
     #
@@ -277,13 +340,16 @@ def main():
     )
 
     #
-    # Join eqtl and pqtl to make final output features ------------------------
+    # Join eqtl, sqtl and pqtl to make final output features ------------------------
     #
 
-    data = eqtl_max_cclp.join(
-        pqtl_max_cclp,
-        on=['study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id'],
-        how='outer'
+    data = (eqtl_max_cclp
+        .join(sqtl_max_cclp,
+              on=['study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id'],
+              how='outer')
+        .join(pqtl_max_cclp,
+              on=['study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id'],
+              how='outer')
     )
 
     # Write

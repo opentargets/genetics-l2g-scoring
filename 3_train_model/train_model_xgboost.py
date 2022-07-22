@@ -250,18 +250,18 @@ def get_cv_groups(df, num_folds, group_col, outcome_col, all_groups):
 def make_feature_sets(available_columns):
     ''' Make different sets of features to run the model on
     
-    List of all features (Januaray 2020):
+    List of all features (January 2020):
 
     'dhs_prmtr_max',
     'dhs_prmtr_max_nbh', 'dhs_prmtr_ave', 'dhs_prmtr_ave_nbh',
     'enhc_tss_max', 'enhc_tss_max_nbh', 'enhc_tss_ave', 'enhc_tss_ave_nbh',
-    'eqtl_coloc_llr_max', 'eqtl_coloc_llr_max_neglogp',
-    'eqtl_coloc_llr_max_nbh', 'pqtl_coloc_llr_max',
-    'pqtl_coloc_llr_max_neglogp', 'pqtl_coloc_llr_max_nbh', 'pchicJung_max',
-    'pchicJung_max_nbh', 'pchicJung_ave', 'pchicJung_ave_nbh',
-    'eqtl_pics_clpp_max', 'eqtl_pics_clpp_max_neglogp',
-    'eqtl_pics_clpp_max_nhb', 'pqtl_pics_clpp_max',
-    'pqtl_pics_clpp_max_neglogp', 'pqtl_pics_clpp_max_nhb',
+    'eqtl_coloc_llr_max', 'eqtl_coloc_llr_max_neglogp', 'eqtl_coloc_llr_max_nbh',
+    'sqtl_coloc_llr_max', 'sqtl_coloc_llr_max_neglogp', 'sqtl_coloc_llr_max_nbh',
+    'pqtl_coloc_llr_max', 'pqtl_coloc_llr_max_neglogp', 'pqtl_coloc_llr_max_nbh',
+    'pchicJung_max', 'pchicJung_max_nbh', 'pchicJung_ave', 'pchicJung_ave_nbh',
+    'eqtl_pics_clpp_max', 'eqtl_pics_clpp_max_neglogp', 'eqtl_pics_clpp_max_nhb',
+    'sqtl_pics_clpp_max', 'sqtl_pics_clpp_max_neglogp', 'sqtl_pics_clpp_max_nhb',
+    'pqtl_pics_clpp_max', 'pqtl_pics_clpp_max_neglogp', 'pqtl_pics_clpp_max_nhb',
     'vep_credset_max', 'vep_credset_max_nbh', 'vep_ave', 'vep_ave_nbh',
     'polyphen_credset_max', 'polyphen_credset_max_nbh', 'polyphen_ave',
     'polyphen_ave_nbh', 'count_credset_95', 'has_sumstats', 'dist_foot_sentinel',
@@ -284,12 +284,12 @@ def make_feature_sets(available_columns):
         'dist_tss_ave', 'dist_tss_ave_nbh'
     ]
     molecularQTL = [
-        'eqtl_coloc_llr_max', 'eqtl_coloc_llr_max_neglogp',
-        'eqtl_coloc_llr_max_nbh', 'pqtl_coloc_llr_max',
-        'pqtl_coloc_llr_max_neglogp', 'pqtl_coloc_llr_max_nbh',
-        'eqtl_pics_clpp_max', 'eqtl_pics_clpp_max_neglogp',
-        'eqtl_pics_clpp_max_nhb', 'pqtl_pics_clpp_max',
-        'pqtl_pics_clpp_max_neglogp', 'pqtl_pics_clpp_max_nhb',
+        'eqtl_coloc_llr_max', 'eqtl_coloc_llr_max_neglogp', 'eqtl_coloc_llr_max_nbh',
+        'sqtl_coloc_llr_max', 'sqtl_coloc_llr_max_neglogp', 'sqtl_coloc_llr_max_nbh',
+        'pqtl_coloc_llr_max', 'pqtl_coloc_llr_max_neglogp', 'pqtl_coloc_llr_max_nbh',
+        'eqtl_pics_clpp_max', 'eqtl_pics_clpp_max_neglogp', 'eqtl_pics_clpp_max_nhb',
+        'sqtl_pics_clpp_max', 'sqtl_pics_clpp_max_neglogp', 'sqtl_pics_clpp_max_nhb',
+        'pqtl_pics_clpp_max', 'pqtl_pics_clpp_max_neglogp', 'pqtl_pics_clpp_max_nhb',
     ]
     interaction = [
         'dhs_prmtr_max', 'dhs_prmtr_max_nbh', 'dhs_prmtr_ave', 'dhs_prmtr_ave_nbh',

@@ -23,34 +23,34 @@ def main():
     out_gs = 'gs://genetics-portal-dev-staging/l2g/{v}/features/inputs/'.format(v=args.version)
     manifest = {
         'study': {
-            'in': 'gs://genetics-portal-dev-staging/v2d/220208/studies.parquet',
+            'in': 'gs://genetics-portal-dev-staging/v2d/220401/studies.parquet',
             'out': out_gs + 'studies.parquet'
         },
         'toploci': {
-            'in': 'gs://genetics-portal-dev-staging/v2d/220208/toploci.parquet',
+            'in': 'gs://genetics-portal-dev-staging/v2d/220401/toploci.parquet',
             'out': out_gs + 'toploci.parquet'
         },
         'credsets_v2d': {
-            'in_fm': 'gs://genetics-portal-dev-staging/finemapping/220113_merged/credset/part-*.json.gz',
-            'in_pics': 'gs://genetics-portal-dev-staging/v2d/220208/ld.parquet',
+            'in_fm': 'gs://genetics-portal-dev-staging/finemapping/220224_merged/credset/part-*.json.gz',
+            'in_pics': 'gs://genetics-portal-dev-staging/v2d/220401/ld.parquet',
             'out': out_gs + 'credsets_v2d.parquet'
         },
         'credsets_qtl': {
-            'in': 'gs://genetics-portal-dev-staging/finemapping/220113_merged/credset/part-*.json.gz',
+            'in': 'gs://genetics-portal-dev-staging/finemapping/220224_merged/credset/part-*.json.gz',
             'in_lut': 'gs://genetics-portal-input/luts/phenotype_id_lut.190629.json', # This is a lut to map from non-gene phenotype ID to Ensembl ID
             'out': out_gs + 'credsets_qtl.parquet'
         },
         'coloc': {
-            'in': 'gs://genetics-portal-dev-staging/coloc/220127/coloc_processed_w_betas_fixed.parquet',
+            'in': 'gs://genetics-portal-dev-staging/coloc/220408/coloc_processed_w_betas.parquet',
             'out': out_gs + 'coloc.parquet'
         },
         'v2g': {
-            'in': 'gs://genetics-portal-dev-data/22.01.2/outputs/v2g/part-*.json',
+            'in': 'gs://genetics-portal-dev-data/22.05.2/outputs/json/v2g/part-*.json',
             'out_interval': out_gs + 'interval.parquet',
             'out_vep': out_gs + 'vep.parquet'
         },
         'genes': {
-            'in': 'gs://genetics-portal-dev-data/22.01/inputs/lut/homo_sapiens_core_105_38_genes.json.gz',
+            'in': 'gs://genetics-portal-dev-data/22.05.0/inputs/lut/homo_sapiens_core_106_38_genes.json.gz',
             'out': out_gs + 'genes.parquet'
         },
         'polyphen': {
@@ -497,12 +497,6 @@ def process_study_table(in_path, out_path):
                 col('study_id') == 'NEALE2_50_raw',
                 array([lit('EFO_0004339')])
             ).otherwise(col('trait_efos'))
-        )
-        .withColumn('trait_category',
-            when(
-                col('study_id') == 'NEALE2_50_raw',
-                lit('anthropometric measurement')
-            ).otherwise(col('trait_category'))
         )
     )
 

@@ -142,6 +142,68 @@ def main():
     )
 
     #
+    # Extract sQTL features ---------------------------------------------------
+    #
+
+    coloc_sqtl = coloc.filter(col('qtl_type') == 'sqtl')
+
+    # Get sqtl_coloc_llr_max, qtl_neglog_p from row with max(sqtl_coloc_llr_max)
+    window_spec = (
+        Window
+        .partitionBy('study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id')
+        .orderBy(desc('coloc_log2_h4_h3'))
+    )
+    sqtl_max_coloc_local = (
+        coloc_sqtl
+        .withColumn('rn', row_number().over(window_spec))
+        .filter(col('rn') == 1)
+        .select(
+            'study_id',
+            'chrom',
+            'pos',
+            'ref',
+            'alt',
+            'gene_id',
+            col('coloc_log2_h4_h3').alias('sqtl_coloc_llr_max'),
+            col('qtl_neglog_p').alias('sqtl_coloc_llr_max_neglogp')
+        )
+    )
+
+    # Get sqtl_coloc_llr_max from row with max(sqtl_coloc_llr_max) across any
+    # gene at each locus (neighbourhood max)
+    window_spec = (
+        Window
+        .partitionBy('study_id', 'chrom', 'pos', 'ref', 'alt')
+        .orderBy(desc('coloc_log2_h4_h3'))
+    )
+    sqtl_max_coloc_nbh = (
+        coloc_sqtl
+        .withColumn('rn', row_number().over(window_spec))
+        .filter(col('rn') == 1)
+        .select(
+            'study_id',
+            'chrom',
+            'pos',
+            'ref',
+            'alt',
+            col('coloc_log2_h4_h3').alias('sqtl_coloc_llr_max_nbh_temp'),
+        )
+    )
+
+    # Join local and neighbourhood together, then take proportion of
+    # local / neighbourhood
+    sqtl_max_coloc = (
+        sqtl_max_coloc_local.join(
+            sqtl_max_coloc_nbh,
+            on=['study_id', 'chrom', 'pos', 'ref', 'alt']
+        )
+        .withColumn('sqtl_coloc_llr_max_nbh',
+            col('sqtl_coloc_llr_max') - col('sqtl_coloc_llr_max_nbh_temp')
+        )
+        .drop('sqtl_coloc_llr_max_nbh_temp')
+    )
+
+    #
     # Extract pQTL features ---------------------------------------------------
     #
 
@@ -205,13 +267,16 @@ def main():
     
 
     #
-    # Join eqtl and pqtl to make final output features ------------------------
+    # Join eqtl, sqtl and pqtl to make final output features ------------------------
     #
 
-    data = eqtl_max_coloc.join(
-        pqtl_max_coloc,
-        on=['study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id'],
-        how='outer'
+    data = (eqtl_max_coloc
+        .join(sqtl_max_coloc,
+              on=['study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id'],
+              how='outer')      
+        .join(pqtl_max_coloc,
+              on=['study_id', 'chrom', 'pos', 'ref', 'alt', 'gene_id'],
+              how='outer')
     )
 
     # Write
