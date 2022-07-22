@@ -45,7 +45,7 @@ def main():
             'out': out_gs + 'coloc.parquet'
         },
         'v2g': {
-            'in': 'gs://genetics-portal-dev-data/22.05.2/outputs/parquet/v2g/part-*.json',
+            'in': 'gs://genetics-portal-dev-data/22.05.2/outputs/json/v2g/part-*.json',
             'out_interval': out_gs + 'interval.parquet',
             'out_vep': out_gs + 'vep.parquet'
         },
