@@ -670,15 +670,14 @@ def process_credsets_qtl_table(in_path, in_lut, out_path):
             in_lut (json): phenotype ID to gene ID lookup table
             out_path (parquet)
     '''
-    # Load
-    fm = spark.read.json(in_path)
 
-    #Filter qtl
+    # Load and filter qtl
     qtl = (
-        fm
+        spark.read.json(in_path)
         .filter(col('type') != 'gwas')
         .filter(col('postprob') >= 0.001)
     )
+    qtl_types = qtl.select('type').distinct().toPandas()['type'].to_list()
 
     # Create column showing if the tag is the sentinel
     qtl = (
@@ -699,16 +698,16 @@ def process_credsets_qtl_table(in_path, in_lut, out_path):
     # Load phenotype id lut and join
     lut = spark.read.json(in_lut)
     qtl = (
+        qtl
         # Add gene_id from lut for none ENSG phenotypes
-        qtl.join(
+        .join(
             broadcast(lut),
             on='phenotype_id',
             how='left'
         )
         # Add gene_id for ENSG phenotypes
         .withColumn('gene_id',
-            when(col('phenotype_id').startswith('ENSG'),
-                 col('phenotype_id'))
+            when(col('gene_id').isNull(), regexp_extract('phenotype_id', r'(ENSG\d+)', 1))
             .otherwise(col('gene_id'))
         )
         # Filter rows without a gene_id
@@ -739,6 +738,7 @@ def process_credsets_qtl_table(in_path, in_lut, out_path):
     qtl = qtl.repartitionByRange(
         'study_id', 'lead_chrom', 'lead_pos'
     )
+    assert qtl.select('type').distinct().count() == len(qtl_types), f"The number of QTLs in the processed credible set is not correct. There are {qtl.select('type').distinct().count()}' instead of {len(qtl_types)}."
 
     # Write
     qtl.write.parquet(
