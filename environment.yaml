@@ -1,11 +1,19 @@
 channels:
   - conda-forge
 dependencies:
-  - python=3.7
-  - pyarrow>=0.15
-  - pandas
-  - pyspark=2.4
-  - scikit-learn
-  - joblib
-  - xgboost
-  - matplotlib
+  - python=3.9
+  - openjdk
+  - pip
+  - pip:
+    - gcsfs 
+    - hydra-core
+    - pyarrow>=0.15
+    - pandas
+    - pathlib
+    - psutil
+    - pyspark
+    - scikit-learn
+    - joblib
+    - xgboost==1.4.2
+    - matplotlib
+  

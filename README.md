@@ -2,11 +2,15 @@
 
 Workflows to run locus-to-gene (L2G) ML scoring pipeline. This repository contains code to:
 
-1. [Engineer L2G feature-matrix](#step-1-feature-engineering)
-2. [Process and join gold-standards (training data)](#step-2-join-gold-standard-training-data)
-3. [Train XGBoost classifier](#step-3-train-classifier)
-4. [Validate model under cross-validation](#step-4-validate-model)
-5. [Use model to prioritise genes for all loci](#step-5-prioritise-genes)
+- [Locus-to-gene scoring pipeline](#locus-to-gene-scoring-pipeline)
+  - [Setup environment](#setup-environment)
+  - [Step 1: Feature engineering](#step-1-feature-engineering)
+    - [Start Dataproc cluster](#start-dataproc-cluster)
+    - [Generate features](#generate-features)
+  - [Step 2: Join gold-standard training data](#step-2-join-gold-standard-training-data)
+  - [Step 3: Train classifier](#step-3-train-classifier)
+  - [Step 4: Validate model](#step-4-validate-model)
+  - [Step 5: Prioritise genes](#step-5-prioritise-genes)
 
 Step 1 is run on DataProc. Steps 2-5 run on local compute (e.g. 32 core standard GCP).
 
@@ -42,8 +46,8 @@ Integrates fine-mapping information with functional genomics datasets to generat
 ```bash
 # Start cluster (highmem)
 gcloud beta dataproc clusters create \
-    em-cluster-ml-features \
-    --image-version=1.4 \
+    l2g-ml-features \
+    --image-version=1.5.54
     --region europe-west1 \
     --zone=europe-west1-d \
     --properties=spark:spark.debug.maxToStringFields=100,spark:spark.executor.cores=12,spark:spark.executor.instances=5 \
@@ -57,13 +61,13 @@ gcloud beta dataproc clusters create \
     --max-idle=10m
 
 # To monitor
-gcloud compute ssh em-cluster-ml-features-m \
+gcloud compute ssh l2g-ml-features-m \
   --project=open-targets-genetics-dev \
   --zone=europe-west1-d -- -D 1080 -N
 
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
   --proxy-server="socks5://localhost:1080" \
-  --user-data-dir="/tmp/em-cluster-ml-features-m" http://em-cluster-ml-features-m:8088
+  --user-data-dir="/tmp/l2g-ml-features-m" http://l2g-ml-features-m:8088
 ```
 
 ### Generate features
@@ -81,7 +85,7 @@ nano 1_prepare_inputs.py
 
 # Create input datasets (took 32 min on last run)
 gcloud dataproc jobs submit pyspark \
-    --cluster=em-cluster-ml-features \
+    --cluster=l2g-ml-features \
     --region europe-west1 \
     1_prepare_inputs.py -- --version $version_date
 
@@ -90,7 +94,7 @@ gcloud dataproc jobs submit pyspark \
 cd 2_make_features
 for inf in dhs_prmtr.py enhc_tss.py fm_coloc.py others.py pchicJung.py pics_coloc.py polyphen.py vep.py distance.py; do
     gcloud dataproc jobs submit pyspark \
-        --cluster=em-cluster-ml-features \
+        --cluster=l2g-ml-features \
         --region europe-west1 \
         $inf -- \
         --version $version_date
@@ -104,7 +108,7 @@ gsutil -m rsync -r \
 # Join features
 cd ..
 gcloud dataproc jobs submit pyspark \
-    --cluster=em-cluster-ml-features \
+    --cluster=l2g-ml-features \
     --region europe-west1 \
     3_join_features.py -- --version $version_date
 
