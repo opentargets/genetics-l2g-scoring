@@ -24,6 +24,13 @@ def main(cfg: DictConfig) -> None:
         genes_path=cfg.feature_extraction.input.genes,
         out_path=cfg.feature_extraction.processed_inputs.genes,
     )
+    process_credset_v2d(
+        v2d_path=cfg.feature_extraction.input.v2d,
+        posteriorprob_threshold=cfg.feature_extraction.parameters.credset_posteriorprob_threshold,
+        out_path=cfg.feature_extraction.processed_inputs.credset_qtl,
+
+
+    )
     process_credset_qtl(
         credset_path=cfg.feature_extraction.input.credset,
         posteriorprob_threshold=cfg.feature_extraction.parameters.credset_posteriorprob_threshold,
@@ -111,7 +118,85 @@ def process_gene_table(genes_path: str, out_path: str) -> None:
     write_parquet(genes, out_path)
     logging.info(f'Gene table has been processed and saved to: {out_path}.')
 
-    return None
+
+def process_gwas_credset(v2d_path: str, credset_path: str, posteriorprob_threshold: float, out_path: str) -> None:
+    """
+    It takes the outputs from the fine mapping and LD expansion pipelines to combine them into a single GWAS credible set
+    
+    Args:
+      v2d_path (str): path to the V2D dataset
+      credset_path (str): the path to the FM credset table
+      posteriorprob_threshold (float): The minimum posterior probability for a variant to be included in
+    the credible set.
+      out_path (str): path to directory of parquet files containing processed data
+    """
+
+    fm = (
+        spark.read.parquet(credset_path)
+        .filter(F.col('type') == 'gwas')
+        .filter(F.col('posteriorprob') >= posteriorprob_threshold)
+        .select(
+            'study_id',
+            'lead_chrom',
+            'lead_pos',
+            'lead_ref',
+            'lead_alt',
+            'tag_chrom',
+            'tag_pos',
+            'tag_ref',
+            'tag_alt',
+            F.col('postprob').alias('fm_postprob'),
+            F.col('is95_credset').alias('fm_is95'),
+            F.lit(True).alias('has_fm'),
+        )
+        .distinct()
+    )
+
+    pics = (
+        spark.read.parquet(v2d_path)
+        .filter(F.col('posterior_prob') >= posteriorprob_threshold)
+        .withColumn('has_fm', F.when(F.col('has_sumstats') == True, True).otherwise(False))
+        .select(
+            'study_id',
+            'lead_chrom',
+            'lead_pos',
+            'lead_ref',
+            'lead_alt',
+            'tag_chrom',
+            'tag_pos',
+            'tag_ref',
+            'tag_alt',
+            F.col('posterior_prob').alias('pics_postprob'),
+            # ATTENTION: This field is still not available in the V2D dataset (see #2695)
+            F.col('pics_95perc_credset').alias('pics_is95'),
+            'has_fm',
+        )
+        .distinct()
+    )
+
+    # Combine the two datasets by joining on the study/tag/lead variants
+    joinin_cols = [
+        'study_id',
+        'lead_chrom',
+        'lead_pos',
+        'lead_ref',
+        'lead_alt',
+        'tag_chrom',
+        'tag_pos',
+        'tag_ref',
+        'tag_alt',
+    ]
+    combined_credset = (
+        fm.join(pics, on=joinin_cols, how='outer')
+        .withColumn(
+            'combined_postprob', F.when(F.col('has_fm') == True, F.col('fm_postprob')).otherwise(F.col('pics_postprob'))
+        )
+        .withColumn('combined_is95', F.when(F.col('has_fm') == True, F.col('fm_is95')).otherwise(F.col('pics_is95')))
+        .drop('has_fm')
+        .repartitionByRange('study_id', 'lead_chrom', 'lead_pos')
+    )
+    write_parquet(combined_credset, out_path)
+    logging.info(f'Combined credible set table has been processed and saved to: {out_path}.')
 
 
 def process_credset_qtl(credset_path: str, posteriorprob_threshold: float, out_path: str) -> None:
@@ -119,8 +204,8 @@ def process_credset_qtl(credset_path: str, posteriorprob_threshold: float, out_p
     Extract QTL credible set info
 
     Args:
-        in_path (json): credible set results from fine-mapping pipeline
-        out_path (parquet)
+        in_path (json): credible set results from the fine-mapping pipeline
+        out_path (parquet): path to directory of parquet files containing processed data
     """
 
     qtl_credset_df = (

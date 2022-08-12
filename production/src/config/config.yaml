@@ -3,12 +3,14 @@ feature_extraction:
     coloc: gs://genetics-portal-dev-data/22.05.2/outputs/v2d_coloc
     genes: gs://genetics-portal-dev-data/22.05.2/outputs/lut/genes-index
     credset: gs://genetics-portal-dev-data/22.05.2/outputs/v2d_credset
+    v2d: gs://genetics-portal-dev-data/22.05.2/outputs/v2d 
   params:
     credset_posteriorprob_threshold: 0.0001
   processed_inputs:
     coloc: processed_inputs/coloc
     genes: processed_inputs/genes
-    credset_qtl: processed_inputs/credset_qtl
+    credset_qtl: processed_inputs/qtl_credset
+    credset_combined: processed_inputs/gwas_credset
   processed_features:
     coloc: processed_features/coloc
   output:
