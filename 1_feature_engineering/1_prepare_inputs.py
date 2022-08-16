@@ -14,7 +14,7 @@ from datetime import date
 from pyspark.sql.window import Window
 import networkx as nx
 
-PP_THRESHOLD = 0.0001
+PP_THRESHOLD = 0.001
 
 def main():
 
@@ -553,7 +553,7 @@ def process_credsets_v2d_table(in_fm, in_pics, pp_threshold, out_path):
     ''' Process the finemapping and pics credible set info
         Steps:
             - Only keep type = 'gwas' in fm table
-            - filter both to pp > 0.0001
+            - filter both to pp > 0.001
             - drop unneeded columns
             - merged fm and pics
             - create combined column that use fm if available, otherwise
@@ -669,7 +669,7 @@ def process_credsets_qtl_table(in_path, in_lut, pp_threshold, out_path):
     ''' Extract QTL credible set info
         Steps:
             - Only keep type != 'gwas'
-            - filter to pp > 0.0001
+            - filter to pp > 0.001
             - Add bool whether tag is sentinel
             - drop unneeded columns
         Args:
