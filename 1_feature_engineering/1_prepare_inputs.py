@@ -14,6 +14,8 @@ from datetime import date
 from pyspark.sql.window import Window
 import networkx as nx
 
+PP_THRESHOLD = 0.001
+
 def main():
 
     # Parse args
@@ -33,11 +35,13 @@ def main():
         'credsets_v2d': {
             'in_fm': 'gs://genetics-portal-dev-staging/finemapping/220224_merged/credset/part-*.json.gz',
             'in_pics': 'gs://genetics-portal-dev-staging/v2d/220401/ld.parquet',
+            'pp_threshold': PP_THRESHOLD,
             'out': out_gs + 'credsets_v2d.parquet'
         },
         'credsets_qtl': {
             'in': 'gs://genetics-portal-dev-staging/finemapping/220224_merged/credset/part-*.json.gz',
             'in_lut': 'gs://genetics-portal-input/luts/phenotype_id_lut.190629.json', # This is a lut to map from non-gene phenotype ID to Ensembl ID
+            'pp_threshold': PP_THRESHOLD,
             'out': out_gs + 'credsets_qtl.parquet'
         },
         'coloc': {
@@ -66,6 +70,7 @@ def main():
         'clusters': {
             'in_toploci': out_gs + 'toploci.parquet',
             'in_credset': out_gs + 'credsets_v2d.parquet',
+            'pp_threshold': PP_THRESHOLD,
             'out': out_gs + 'clusters.parquet'
         },
         'pchicJung': {
@@ -103,11 +108,13 @@ def main():
     process_credsets_v2d_table(
         in_fm=manifest['credsets_v2d']['in_fm'],
         in_pics=manifest['credsets_v2d']['in_pics'],
+        pp_threshold=manifest['credsets_v2d']['pp_threshold'],
         out_path=manifest['credsets_v2d']['out']
     )
     process_credsets_qtl_table(
         in_path=manifest['credsets_qtl']['in'],
         in_lut=manifest['credsets_qtl']['in_lut'],
+        pp_threshold=manifest['credsets_qtl']['pp_threshold'],
         out_path=manifest['credsets_qtl']['out']
     )
     process_gene_table(
@@ -138,7 +145,7 @@ def main():
     process_clusters(
         in_top_loci=manifest['clusters']['in_toploci'],
         in_credible_sets=manifest['clusters']['in_credset'],
-        min_pp_clustering=0.001,
+        pp_threshold=manifest['clusters']['pp_threshold'],
         out_path=manifest['clusters']['out']
     )
     process_pchicJung(
@@ -158,8 +165,7 @@ def main():
 
     return 0
 
-def process_clusters(in_top_loci, in_credible_sets, min_pp_clustering,
-                    out_path):
+def process_clusters(in_top_loci, in_credible_sets, pp_threshold, out_path):
     ''' Clusters the top loci based on credible set information and adds
         cluster label
     Args:
@@ -179,7 +185,7 @@ def process_clusters(in_top_loci, in_credible_sets, min_pp_clustering,
     # Load credible set information
     credset = (
         spark.read.parquet(in_credible_sets)
-        .filter(col('combined_postprob') >= min_pp_clustering)
+        .filter(col('combined_postprob') >= pp_threshold)
         .select(
             col('study_id'),
             col('lead_chrom').alias('chrom'),
@@ -543,11 +549,11 @@ def process_toploci_table(in_path, out_path):
 
     return 0
 
-def process_credsets_v2d_table(in_fm, in_pics, out_path):
+def process_credsets_v2d_table(in_fm, in_pics, pp_threshold, out_path):
     ''' Process the finemapping and pics credible set info
         Steps:
             - Only keep type = 'gwas' in fm table
-            - filter both to pp > 0.0001
+            - filter both to pp > 0.001
             - drop unneeded columns
             - merged fm and pics
             - create combined column that use fm if available, otherwise
@@ -555,6 +561,7 @@ def process_credsets_v2d_table(in_fm, in_pics, out_path):
         Args:
             in_fm (json): credible set results from fine-mapping pipeline
             in_pics (parquet): credible set information from the PICS LD method
+            pp_threshold (float): p-value threshold for tag variants' posterior probability
             out_path (parquet)
     '''
     # Load
@@ -572,7 +579,7 @@ def process_credsets_v2d_table(in_fm, in_pics, out_path):
     fm = (
         fm
         .filter(col('type') == 'gwas')
-        .filter(col('postprob') >= 0.001)
+        .filter(col('postprob') >= pp_threshold)
         .select([
             'study_id',
             'lead_chrom',
@@ -591,7 +598,7 @@ def process_credsets_v2d_table(in_fm, in_pics, out_path):
     # Prepare pics
     pics = (
         pics
-        .filter(col('pics_postprob') >= 0.001)
+        .filter(col('pics_postprob') >= pp_threshold)
         .select([
             'study_id',
             'lead_chrom',
@@ -658,16 +665,17 @@ def process_credsets_v2d_table(in_fm, in_pics, out_path):
 
     return 0
 
-def process_credsets_qtl_table(in_path, in_lut, out_path):
+def process_credsets_qtl_table(in_path, in_lut, pp_threshold, out_path):
     ''' Extract QTL credible set info
         Steps:
             - Only keep type != 'gwas'
-            - filter to pp > 0.0001
+            - filter to pp > 0.001
             - Add bool whether tag is sentinel
             - drop unneeded columns
         Args:
             in_path (json): credible set results from fine-mapping pipeline
             in_lut (json): phenotype ID to gene ID lookup table
+            pp_threshold (float): p-value threshold for tag variants' posterior probability
             out_path (parquet)
     '''
 
@@ -675,7 +683,7 @@ def process_credsets_qtl_table(in_path, in_lut, out_path):
     qtl = (
         spark.read.json(in_path)
         .filter(col('type') != 'gwas')
-        .filter(col('postprob') >= 0.001)
+        .filter(col('postprob') >= pp_threshold)
     )
     qtl_types = qtl.select('type').distinct().toPandas()['type'].to_list()
 
