@@ -59,6 +59,8 @@ def main():
                 'qtl_neglog_p')
         .drop_duplicates()
     )
+    qtl=qtl.withColumn("right_phenotype", regexp_replace(qtl.right_phenotype, ":", "^"))
+
     coloc = coloc.join(
         qtl,
         on=['right_study', 'right_bio_feature', 'right_phenotype',
