@@ -23,7 +23,7 @@ def main():
     out_gs = 'gs://genetics-portal-dev-staging/l2g/{v}/features/inputs/'.format(v=args.version)
     manifest = {
         'study': {
-            'in': 'gs://genetics-portal-dev-staging/v2d/220401/studies.parquet',
+            'in': 'gs://genetics-portal-dev-staging/v2d/221006/studies.parquet',
             'out': out_gs + 'studies.parquet'
         },
         'toploci': {
@@ -45,7 +45,7 @@ def main():
             'out': out_gs + 'coloc.parquet'
         },
         'v2g': {
-            'in': 'gs://genetics-portal-dev-data/22.05.2/outputs/json/v2g/part-*.json',
+            'in': 'gs://genetics-portal-dev-data/22.09.0/outputs/v2g/part-*.parquet',
             'out_interval': out_gs + 'interval.parquet',
             'out_vep': out_gs + 'vep.parquet'
         },
@@ -695,25 +695,27 @@ def process_credsets_qtl_table(in_path, in_lut, out_path):
         )
     )
 
-    # Load phenotype id lut and join
-    lut = spark.read.json(in_lut)
-    qtl = (
-        qtl
-        # Add gene_id from lut for none ENSG phenotypes
-        .join(
-            broadcast(lut),
-            on='phenotype_id',
-            how='left'
-        )
-        # Add gene_id for ENSG phenotypes
-        .withColumn('gene_id',
-            when(col('gene_id').isNull(), regexp_extract('phenotype_id', r'(ENSG\d+)', 1))
-            .otherwise(col('gene_id'))
-        )
-        # Filter rows without a gene_id
-        .filter(col('gene_id').isNotNull())
+    qtl=qtl.withColumn("phenotype_id", regexp_replace(qtl.phenotype_id, ":", "^"))
 
-    )
+    # Load phenotype id lut and join
+#    lut = spark.read.json(in_lut)
+#    qtl = (
+#        qtl
+        # Add gene_id from lut for none ENSG phenotypes
+#        .join(
+#            broadcast(lut),
+#            on='phenotype_id',
+#            how='left'
+#        )
+#        # Add gene_id for ENSG phenotypes
+#        .withColumn('gene_id',
+#            when(col('gene_id').isNull(), regexp_extract('phenotype_id', r'(ENSG\d+)', 1))
+#            .otherwise(col('gene_id'))
+#        )
+#        # Filter rows without a gene_id
+#        .filter(col('gene_id').isNotNull())
+#
+#    )
 
     # Drop unneeded cols
     qtl = qtl.select(
@@ -825,7 +827,7 @@ def process_v2g_table(in_path, out_interval, out_vep):
             out_vep (parquet)
     '''
     # Load
-    v2g = spark.read.json(in_path)
+    v2g = spark.read.parquet(in_path)
 
     # Process interval
     (
