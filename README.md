@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Superseded.** The work in this repository has been superseded by the new pan-GWAS pipeline released as part of the consolidated [Open Targets Platform](https://platform.opentargets.org) in March 2025. See [A step change in common disease genetics](https://blog.opentargets.org/a-step-change-in-common-disease-genetics/) for context.
+
 # Locus-to-gene scoring pipeline
 
 This repository contains workflows to run the Open Targets Genetics locus-to-gene (L2G) ML scoring pipeline.
